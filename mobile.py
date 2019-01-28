@@ -1,30 +1,38 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from datetime import date, timedelta
 import logging
+from config import TOKEN
 
 
+class TelegramBot:
+    def __init__(self):
+        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
+                                   '%(message)s', level=logging.INFO)
 
-updater = Updater(token=TOKEN)
-dispatcher = updater.dispatcher
+        updater = Updater(token=TOKEN)
+        dispatcher = updater.dispatcher
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+        dispatcher.add_handler(CommandHandler('kiitos', self.kiitos))
+        dispatcher.add_handler(CommandHandler('wabu', self.vappu))
+
+        updater.start_polling()
+        updater.idle()
+
+        updater.start_polling()
+        updater.idle()
+
+    def vappu(self, bot, update):
+        wabu = date(2019, 4, 15)
+        tanaan = date.today()
+        erotus = wabu - tanaan
+        bot.send_message(chat_id=update.message.chat_id,
+                         text='Wabun alkuun on {} paivaa'.format(erotus.days))
+
+    def kiitos(self, bot, update):
+        bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori')
 
 
-def kiitos(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori')
+if __name__ == '__main__':
+    TelegramBot()
 
 
-# wabu alkaa 15.4.2019
-def vappu(bot, update):
-    wabu = date(2019, 4, 15)
-    tanaan = date.today()
-    erotus = wabu - tanaan
-    bot.send_message(chat_id=update.message.chat_id, text='Wabun alkuun on {} paivaa'.format(erotus.days))
-
-
-dispatcher.add_handler(CommandHandler('kiitos', kiitos))
-dispatcher.add_handler(CommandHandler('wabu', vappu))
-
-updater.start_polling()
-updater.idle()
