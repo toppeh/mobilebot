@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from datetime import date, timedelta
 import logging
@@ -14,9 +16,7 @@ class TelegramBot:
 
         dispatcher.add_handler(CommandHandler('kiitos', self.kiitos))
         dispatcher.add_handler(CommandHandler('wabu', self.vappu))
-
-        updater.start_polling()
-        updater.idle()
+        dispatcher.add_handler(CommandHandler('sekseli', self.sekseli))
 
         updater.start_polling()
         updater.idle()
@@ -30,6 +30,9 @@ class TelegramBot:
 
     def kiitos(self, bot, update):
         bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori')
+
+    def sekseli(self, bot, update):
+        bot.send_message(chat_id=update.message.chat_id, text='Akseli sekseli guu nu kaijakka niko toivio sitä r elsa')
 
 
 if __name__ == '__main__':
