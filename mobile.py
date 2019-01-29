@@ -17,8 +17,8 @@ class TelegramBot:
 
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
 
-        self.viim_kom = {'wabu': [], 'kiitos': [], 'sekseli': []}
-        self.commands = {'wabu': self.wabu, 'kiitos': self.kiitos, 'sekseli': self.sekseli}
+        self.viim_kom = {'wabu': [], 'kiitos': [], 'sekseli': [], 'pöytä': []}
+        self.commands = {'wabu': self.wabu, 'kiitos': self.kiitos, 'sekseli': self.sekseli, 'pöytä': self.pöytä}
 
         updater.start_polling()
         updater.idle()
@@ -37,6 +37,9 @@ class TelegramBot:
     def sekseli(self, bot, update):
         bot.send_message(chat_id=update.message.chat_id, text='Akseli sekseli guu nu kaijakka niko toivio sitä r el'
                          'sa')
+
+    def pöytä(self, bot, update):
+        bot.send_video(chat_id=update.message.chat_id, video=open('jorigif/poyta.mp4', 'rb'))
 
     def aikaTarkistus(self, viesti_aika):
         if datetime.today() - viesti_aika < timedelta(0, 30):
