@@ -5,6 +5,7 @@ from datetime import date, timedelta, datetime
 import logging
 from config import TOKEN
 
+#tämä on kommentti
 
 class TelegramBot:
     def __init__(self):
@@ -30,6 +31,7 @@ class TelegramBot:
                          text='Wabun alkuun on {} päivää'.format(erotus.days))
 
     def kiitos(self, bot, update):
+        print(update.message.chat_id)
         bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori')
 
     def sekseli(self, bot, update):
