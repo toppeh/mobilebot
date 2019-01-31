@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from datetime import date, timedelta, datetime
 import logging
-from config import TOKEN
+from datetime import date, timedelta, datetime
 
-#tämä on kommentti
+from config import TOKEN
+from telegram.ext import Updater, MessageHandler, Filters
+
 
 class TelegramBot:
     def __init__(self):
@@ -17,31 +17,47 @@ class TelegramBot:
 
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
 
-        self.viim_kom = {'wabu': [], 'kiitos': [], 'sekseli': [], 'pöytä': []}
-        self.commands = {'wabu': self.wabu, 'kiitos': self.kiitos, 'sekseli': self.sekseli, 'pöytä': self.pöytä}
+        self.commands = {'wabu': self.wabu,
+                         'kiitos': self.kiitos,
+                         'sekseli': self.sekseli,
+                         'pöytä': self.pöytä,
+                         'insv': self.insv,
+                         }
+
+        self.viim_kom = {command: [] for command in self.commands.keys()}
 
         updater.start_polling()
         updater.idle()
 
-    def wabu(self, bot, update):
+    @staticmethod
+    def wabu(bot, update):
         wabu = date(2019, 4, 15)
         tanaan = date.today()
         erotus = wabu - tanaan
         bot.send_message(chat_id=update.message.chat_id,
-                         text='Wabun alkuun on {} päivää'.format(erotus.days))
+                         text=f'Wabun alkuun on {erotus.days} päivää')
 
-    def kiitos(self, bot, update):
+    @staticmethod
+    def kiitos(bot, update):
         print(update.message.chat_id)
         bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori')
 
-    def sekseli(self, bot, update):
-        bot.send_message(chat_id=update.message.chat_id, text='Akseli sekseli guu nu kaijakka niko toivio sitä r el'
-                         'sa')
+    @staticmethod
+    def sekseli(bot, update):
+        text = 'Akseli sekseli guu nu kaijakka niko toivio sitä r elsa'
+        bot.send_message(chat_id=update.message.chat_id, text=text)
 
-    def pöytä(self, bot, update):
+    @staticmethod
+    def pöytä(bot, update):
         bot.send_video(chat_id=update.message.chat_id, video=open('jorigif/poyta.mp4', 'rb'))
 
-    def aikaTarkistus(self, viesti_aika):
+    @staticmethod
+    def insv(bot, update):
+        file_id = "CAADBAADqgADsnJvGjljGk2zOaJJAg"
+        bot.send_sticker(chat_id=update.message.chat_id, sticker=file_id, disable_notification=True)
+
+    @staticmethod
+    def aikaTarkistus(viesti_aika):
         if datetime.today() - viesti_aika < timedelta(0, 30):
             return True
         else:
@@ -68,7 +84,8 @@ class TelegramBot:
         if self.viimeKomentoTarkistus(command, update):
             self.commands[command](bot, update)
 
-    def commandParser(self, teksti):
+    @staticmethod
+    def commandParser(teksti):
         command = ''
         for i in teksti:
             if i == ' ':
@@ -80,4 +97,3 @@ class TelegramBot:
 
 if __name__ == '__main__':
     TelegramBot()
-
