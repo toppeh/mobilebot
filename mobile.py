@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import sqlite3
 from datetime import date, timedelta, datetime
-
-from config import TOKEN, TOKEN_KB
+import config
+#from config import TOKEN, TOKEN_KB, DB_FILE, PINNED_TABLE
 from telegram.ext import Updater, MessageHandler, Filters
 
 
@@ -12,7 +13,7 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=TOKEN_KB)
+        updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
@@ -26,6 +27,8 @@ class TelegramBot:
                          }
 
         self.viim_kom = {command: [] for command in self.commands.keys()}
+
+        self.create_tables()
 
         updater.start_polling()
         updater.idle()
@@ -99,15 +102,23 @@ class TelegramBot:
         try:
             if update.message.pinned_message:
                 if update.message.chat_id == -1001427185006:
-                    pinned_file = open('pinned.txt', '+a')
-                    print(update.message.date, update.message.pinned_message.from_user.username,
-                          update.message.pinned_message.text, file=pinned_file)
-                    pinned_file.close()
+                    sql = "INSERT INTO pinned VALUES (?,?,?)"
+                    pinned = (update.message.date.isoformat(), update.message.pinned_message.from_user.username,
+                              update.message.pinned_message.text)
+                    conn = sqlite3.connect(config.DB_FILE)
+                    cur = conn.cursor()
+                    cur.execute(sql, pinned)
+                    conn.commit()
+                    conn.close()
+
         except KeyError:
             return False
 
-
-
+    def create_tables(self):
+        conn = sqlite3.connect(config.DB_FILE)
+        c = conn.cursor()
+        c.execute(config.PINNED_TABLE)  #TODO: tähän sais varmaanki helposti useamman tablen for-looppiin
+        conn.close()
 
 if __name__ == '__main__':
     TelegramBot()
