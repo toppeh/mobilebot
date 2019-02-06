@@ -3,3 +3,5 @@ config.pyc
 __pycache__/
 jorigif/
 pinned.txt
+.idea/
+venv/

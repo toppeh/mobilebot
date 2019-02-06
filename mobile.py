@@ -99,7 +99,7 @@ class TelegramBot:
         try:
             if update.message.pinned_message:
                 if update.message.chat_id == -1001427185006:
-                    pinned_file = open('pinned.txt', 'a')
+                    pinned_file = open('pinned.txt', '+a')
                     print(update.message.date, update.message.pinned_message.from_user.username,
                           update.message.pinned_message.text, file=pinned_file)
                     pinned_file.close()
