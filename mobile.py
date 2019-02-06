@@ -98,11 +98,11 @@ class TelegramBot:
     def pinned(self, bot, update):
         try:
             if update.message.pinned_message:
-                #if update.message.chat_id == -1001427185006:
-                print("pinned")
-                pinned_file = open('pinned.txt', 'a')
-                print(update.message.from_user, update.message.date, update.message.text, file=pinned_file)
-                pinned_file.close()
+                if update.message.chat_id == -1001427185006:
+                    pinned_file = open('pinned.txt', 'a')
+                    print(update.message.date, update.message.pinned_message.from_user.username,
+                          update.message.pinned_message.text, file=pinned_file)
+                    pinned_file.close()
         except KeyError:
             return False
 
