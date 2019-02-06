@@ -3,7 +3,7 @@
 import logging
 from datetime import date, timedelta, datetime
 
-from config import TOKEN
+from config import TOKEN, TOKEN_KB
 from telegram.ext import Updater, MessageHandler, Filters
 
 
@@ -12,10 +12,11 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=TOKEN)
+        updater = Updater(token=TOKEN_KB)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
+        dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
 
         self.commands = {'wabu': self.wabu,
                          'kiitos': self.kiitos,
@@ -92,7 +93,20 @@ class TelegramBot:
                 break
             elif i != '/':
                 command += i
-        return command
+        return command.lower()
+
+    def pinned(self, bot, update):
+        try:
+            if update.message.pinned_message:
+                #if update.message.chat_id == -1001427185006:
+                print("pinned")
+                pinned_file = open('pinned.txt', 'a')
+                print(update.message.from_user, update.message.date, update.message.text, file=pinned_file)
+                pinned_file.close()
+        except KeyError:
+            return False
+
+
 
 
 if __name__ == '__main__':
