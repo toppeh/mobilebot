@@ -35,21 +35,21 @@ class TelegramBot:
         tanaan = date.today()
         erotus = wabu - tanaan
         bot.send_message(chat_id=update.message.chat_id,
-                         text=f'Wabun alkuun on {erotus.days} päivää')
+                         text=f'Wabun alkuun on {erotus.days} päivää', disable_notification=True)
 
     @staticmethod
     def kiitos(bot, update):
         print(update.message.chat_id)
-        bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori')
+        bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori', disable_notification=True)
 
     @staticmethod
     def sekseli(bot, update):
         text = 'Akseli sekseli guu nu kaijakka niko toivio sitä r elsa'
-        bot.send_message(chat_id=update.message.chat_id, text=text)
+        bot.send_message(chat_id=update.message.chat_id, text=text, disable_notification=True)
 
     @staticmethod
     def pöytä(bot, update):
-        bot.send_video(chat_id=update.message.chat_id, video=open('jorigif/poyta.mp4', 'rb'))
+        bot.send_video(chat_id=update.message.chat_id, video=open('jorigif/poyta.mp4', 'rb'), disable_notification=True)
 
     @staticmethod
     def insv(bot, update):

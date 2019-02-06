@@ -2,3 +2,7 @@ config.py
 config.pyc
 __pycache__/
 jorigif/
+.idea/
+mobile.db
+pinned.txt
+venv/
