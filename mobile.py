@@ -13,7 +13,7 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN)
+        updater = Updater(token=config.TOKEN_KB)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
@@ -53,7 +53,8 @@ class TelegramBot:
 
     @staticmethod
     def pöytä(bot, update):
-        bot.send_video(chat_id=update.message.chat_id, video=open('jorigif/poyta.mp4', 'rb'), disable_notification=True)
+        xd = 'CgADBAADyAQAAgq36FKsK7BL1PNfZQI'
+        bot.send_animation(chat_id=update.message.chat_id, animation=xd, disable_notification=True)
 
     @staticmethod
     def insv(bot, update):
@@ -101,7 +102,7 @@ class TelegramBot:
     def pinned(self, bot, update):
         try:
             if update.message.pinned_message:
-                if update.message.chat_id == -1001427185006:
+                if update.message.chat_id == config.MOBILE_ID:
                     sql = "INSERT INTO pinned VALUES (?,?,?)"
                     pinned = (update.message.date.isoformat(), update.message.pinned_message.from_user.username,
                               update.message.pinned_message.text)
@@ -117,7 +118,10 @@ class TelegramBot:
     def create_tables(self):
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
-        c.execute(config.PINNED_TABLE)  #TODO: tähän sais varmaanki helposti useamman tablen for-looppiin
+        try:
+            c.execute('select * from pinned')
+        except sqlite3.OperationalError:    # taulua ei ollut olemassa
+            c.execute(config.PINNED_TABLE)  # TODO: tähän sais varmaanki helposti useamman tablen for-looppiin
         conn.close()
 
 if __name__ == '__main__':
