@@ -1,3 +1,5 @@
+pip-selfcheck.json
+pyvenv.cfg
 config.py
 config.pyc
 __pycache__/
@@ -6,4 +8,5 @@ pinned.txt
 .idea/
 venv/
 mobile.db
-
+bin/
+lib/
