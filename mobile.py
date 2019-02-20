@@ -86,21 +86,24 @@ class TelegramBot:
     def commandsHandler(self, bot, update):
         if not self.aikaTarkistus(update.message.date):
             return
-        command = self.commandParser(update.message.text)
-        if command not in self.commands:
+        if update.message.entities is None:
             return
-        if self.viimeKomentoTarkistus(command, update):
-            self.commands[command](bot, update)
+        commands = self.commandParser(update.message)
+        for command in commands:
+            if command in self.commands:
+                # if self.viimeKomentoTarkistus(command, update):
+                self.commands[command](bot, update)
 
     @staticmethod
-    def commandParser(teksti):
-        command = ''
-        for i in teksti:
-            if i == ' ' or i == '@':
-                break
-            elif i != '/':
-                command += i
-        return command.lower()
+    def commandParser(msg):
+        commands = list()
+        for i in msg.entities:
+            if i.type == 'bot_command':
+                commands.append(msg.text[i.offset + 1: i.offset + i.length])
+        is_desk = msg.text.find('pöytä')
+        if is_desk != -1:
+            commands.append(msg.text[is_desk:is_desk+5])
+        return commands
 
     def pinned(self, bot, update):
         try:
@@ -124,7 +127,7 @@ class TelegramBot:
         try:
             c.execute('select * from pinned')
         except sqlite3.OperationalError:    # taulua ei ollut olemassa
-            c.execute(config.PINNED_TABLE)  # TODO: tähän sais varmaanki helposti useamman tablen for-looppiin
+            c.execute('''CREATE TABLE pinned (date text, name text, text text)''')  # TODO: tähän sais varmaanki helposti useamman tablen for-looppiin
         conn.close()
 
 if __name__ == '__main__':
