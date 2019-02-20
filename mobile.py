@@ -13,7 +13,7 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN_KB)
+        updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
@@ -93,7 +93,7 @@ class TelegramBot:
     def commandParser(teksti):
         command = ''
         for i in teksti:
-            if i == ' ':
+            if i == ' ' or i == '@':
                 break
             elif i != '/':
                 command += i
