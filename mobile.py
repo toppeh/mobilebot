@@ -4,8 +4,8 @@ import logging
 import sqlite3
 from datetime import date, timedelta, datetime
 import config
-#from config import TOKEN, TOKEN_KB, DB_FILE, PINNED_TABLE
 from telegram.ext import Updater, MessageHandler, Filters
+import random
 
 
 class TelegramBot:
@@ -13,7 +13,7 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN)
+        updater = Updater(token=config.TOKEN_KB)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
@@ -24,6 +24,8 @@ class TelegramBot:
                          'sekseli': self.sekseli,
                          'pöytä': self.pöytä,
                          'insv': self.insv,
+                         'quoteadd': self.quoteadd,
+                         'quote': self.quote
                          }
 
         self.viim_kom = {command: [] for command in self.commands.keys()}
@@ -99,7 +101,7 @@ class TelegramBot:
         commands = list()
         for i in msg.entities:
             if i.type == 'bot_command':
-                commands.append(msg.text[i.offset + 1: i.offset + i.length])
+                commands.append(msg.text[i.offset + 1: i.offset + i.length].lower())
         is_desk = msg.text.find('pöytä')
         if is_desk != -1:
             commands.append(msg.text[is_desk:is_desk+5])
@@ -121,13 +123,58 @@ class TelegramBot:
         except KeyError:
             return False
 
+    def quoteadd(self, bot, update):
+        text = update.message.text
+        first_space = 9
+        try:
+            second_space = text.find(' ', first_space + 1)
+        except IndexError:
+            bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!!")
+
+        if second_space != -1:
+            quote = (text[10:second_space].lower(), text[second_space + 1:])
+            print(quote)
+            conn = sqlite3.connect(config.DB_FILE)
+            cur = conn.cursor()
+            sql = "INSERT INTO quotes VALUES (?,?)"
+            cur.execute(sql, quote)
+            conn.commit()
+            conn.close()
+            bot.send_message(chat_id=update.message.chat_id, text="Sitaatti lisätty")
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!!")
+
+
+    def quote(self, bot, update):
+        space = update.message.text.find(' ')
+        conn = sqlite3.connect(config.DB_FILE)
+        c = conn.cursor()
+        if space == -1:
+            c.execute("SELECT * FROM quotes")
+            quotes = c.fetchall()
+            i = self.random_select(quotes)
+            print(quotes)
+        else:
+            name = update.message.text[space + 1 :]
+            c.execute("SELECT * FROM quotes WHERE name=?", (name.lower(),))
+            quotes = c.fetchall()
+            if len(quotes) == 0:
+                bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
+                return
+            i = self.random_select(quotes)
+        bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[i][1]}" -{quotes[i][0].capitalize()}')
+
+    @staticmethod
+    def random_select(container):
+        rand_int = random.randint(0, len(container)-1)
+        return rand_int
+
+
     def create_tables(self):
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
-        try:
-            c.execute('select * from pinned')
-        except sqlite3.OperationalError:    # taulua ei ollut olemassa
-            c.execute('''CREATE TABLE pinned (date text, name text, text text)''')  # TODO: tähän sais varmaanki helposti useamman tablen for-looppiin
+        c.execute('''CREATE TABLE IF NOT EXISTS pinned (date text, name text, text text)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS quotes (name text, quote text unique)''')
         conn.close()
 
 if __name__ == '__main__':
