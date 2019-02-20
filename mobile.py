@@ -43,8 +43,11 @@ class TelegramBot:
 
     @staticmethod
     def kiitos(bot, update):
-        print(update.message.chat_id)
-        bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori', disable_notification=True)
+        if update.message.reply_to_message is not None:
+            bot.send_message(chat_id=update.message.chat_id, text=f'Kiitos {update.message.reply_to_message.from_user.first_name}!',
+                             disable_notifications=True)
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori!', disable_notification=True)
 
     @staticmethod
     def sekseli(bot, update):
