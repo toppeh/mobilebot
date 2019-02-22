@@ -13,7 +13,7 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN_KB)
+        updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
@@ -73,7 +73,7 @@ class TelegramBot:
         else:
             return False
 
-    def viimeKomentoTarkistus(self, komento, update, sekunnit=5):
+    def viimeKomentoTarkistus(self, komento, update, sekunnit=10):
         for msg in self.viim_kom[komento]:
             if msg.message.chat_id == update.message.chat_id:
                 if datetime.today() - msg.message.date > timedelta(0, sekunnit):
@@ -93,15 +93,18 @@ class TelegramBot:
         commands = self.commandParser(update.message)
         for command in commands:
             if command in self.commands:
-                # if self.viimeKomentoTarkistus(command, update):
-                self.commands[command](bot, update)
+                if self.viimeKomentoTarkistus(command, update):
+                    self.commands[command](bot, update)
 
     @staticmethod
     def commandParser(msg):
         commands = list()
         for i in msg.entities:
             if i.type == 'bot_command':
-                commands.append(msg.text[i.offset + 1: i.offset + i.length].lower())
+                command = msg.text[i.offset + 1: i.offset + i.length].lower()
+                temp = command.split('@')
+                commands.append(temp[0])
+
         is_desk = msg.text.find('pöytä')
         if is_desk != -1:
             commands.append(msg.text[is_desk:is_desk+5])
@@ -153,7 +156,6 @@ class TelegramBot:
             c.execute("SELECT * FROM quotes")
             quotes = c.fetchall()
             i = self.random_select(quotes)
-            print(quotes)
         else:
             name = update.message.text[space + 1 :]
             c.execute("SELECT * FROM quotes WHERE name=?", (name.lower(),))
