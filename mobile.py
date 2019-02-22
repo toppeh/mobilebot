@@ -25,7 +25,8 @@ class TelegramBot:
                          'pöytä': self.pöytä,
                          'insv': self.insv,
                          'quoteadd': self.quoteadd,
-                         'quote': self.quote
+                         'quote': self.quote,
+                         'viisaus': self.viisaus
                          }
 
         self.viim_kom = {command: [] for command in self.commands.keys()}
@@ -155,7 +156,7 @@ class TelegramBot:
         if space == -1:
             c.execute("SELECT * FROM quotes")
             quotes = c.fetchall()
-            i = self.random_select(quotes)
+            i = self.random_select(len(quotes)-1)
         else:
             name = update.message.text[space + 1 :]
             c.execute("SELECT * FROM quotes WHERE name=?", (name.lower(),))
@@ -163,12 +164,20 @@ class TelegramBot:
             if len(quotes) == 0:
                 bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
                 return
-            i = self.random_select(quotes)
+            i = self.random_select(len(quotes)-1)
         bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[i][1]}" -{quotes[i][0].capitalize()}')
 
+    def viisaus(self, bot, update):
+        conn = sqlite3.connect(config.DB_FILE)
+        c = conn.cursor()
+        c.execute("SELECT * FROM sananlaskut")
+        wisenings = c.fetchall()
+        i = self.random_select(len(wisenings)-1)
+        bot.send_message(chat_id=update.message.chat_id, text=wisenings[i][0])
+
     @staticmethod
-    def random_select(container):
-        rand_int = random.randint(0, len(container)-1)
+    def random_select(max):
+        rand_int = random.randint(0, max)
         return rand_int
 
 
@@ -177,6 +186,7 @@ class TelegramBot:
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS pinned (date text, name text, text text)''')
         c.execute('''CREATE TABLE IF NOT EXISTS quotes (name text, quote text unique)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS sananlaskut (teksti text)''')
         conn.close()
 
 if __name__ == '__main__':
