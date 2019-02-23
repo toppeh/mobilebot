@@ -14,7 +14,7 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN)
+        updater = Updater(token=config.TOKEN_KB)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
@@ -76,18 +76,6 @@ class TelegramBot:
         else:
             return False
 
-    def viimeKomentoTarkistus(self, komento, update, sekunnit=10):
-        for msg in self.viim_kom[komento]:
-            if msg.message.chat_id == update.message.chat_id:
-                if datetime.today() - msg.message.date > timedelta(0, sekunnit):
-                    self.viim_kom[komento].remove(msg)
-                    self.viim_kom[komento].append(update)
-                    return True
-                else:
-                    return False
-        self.viim_kom[komento].append(update)
-        return True
-
     def cooldownFilter(self, update):
 
         cooldown = 15
@@ -122,18 +110,6 @@ class TelegramBot:
         for command in commands:
             if command in self.commands:
                 if self.cooldownFilter(update):
-                    self.commands[command](bot, update)
-
-
-    def commandsHandler_old(self, bot, update):
-        if not self.aikaTarkistus(update.message.date):
-            return
-        if update.message.entities is None:
-            return
-        commands = self.commandParser(update.message)
-        for command in commands:
-            if command in self.commands:
-                if self.viimeKomentoTarkistus(command, update):
                     self.commands[command](bot, update)
 
     @staticmethod
@@ -177,7 +153,6 @@ class TelegramBot:
 
         if second_space != -1:
             quote = (text[10:second_space].lower(), text[second_space + 1:])
-            print(quote)
             conn = sqlite3.connect(config.DB_FILE)
             cur = conn.cursor()
             sql = "INSERT INTO quotes VALUES (?,?)"
