@@ -6,6 +6,8 @@ from datetime import date, timedelta, datetime
 import config
 from telegram.ext import Updater, MessageHandler, Filters
 import random
+from time import time
+
 
 
 class TelegramBot:
@@ -29,7 +31,7 @@ class TelegramBot:
                          'viisaus': self.viisaus
                          }
 
-        self.viim_kom = {command: [] for command in self.commands.keys()}
+        self.users = {}  # user_id : unix timestamp
 
         self.create_tables()
 
@@ -74,17 +76,30 @@ class TelegramBot:
         else:
             return False
 
-    def viimeKomentoTarkistus(self, komento, update, sekunnit=10):
-        for msg in self.viim_kom[komento]:
-            if msg.message.chat_id == update.message.chat_id:
-                if datetime.today() - msg.message.date > timedelta(0, sekunnit):
-                    self.viim_kom[komento].remove(msg)
-                    self.viim_kom[komento].append(update)
-                    return True
-                else:
-                    return False
-        self.viim_kom[komento].append(update)
-        return True
+    def cooldownFilter(self, update):
+
+        cooldown = 15
+
+        if not update.message.from_user.id:
+            # Some updates are not from any user -- ie when bot is added to a group
+            return True
+
+        id = update.message.from_user.id
+
+        if id not in self.users.keys():
+            # new user, add id to users
+            self.users[id] = time()
+            return True
+
+        elif id in self.users.keys():
+            # old user
+            if time() - self.users[id] < cooldown:
+                # caught in spam filter
+                return False
+            else:
+                # passed the spam filter.
+                self.users[id] = time()
+                return True
 
     def commandsHandler(self, bot, update):
         if not self.aikaTarkistus(update.message.date):
@@ -94,7 +109,7 @@ class TelegramBot:
         commands = self.commandParser(update.message)
         for command in commands:
             if command in self.commands:
-                if self.viimeKomentoTarkistus(command, update):
+                if self.cooldownFilter(update):
                     self.commands[command](bot, update)
 
     @staticmethod
@@ -134,10 +149,10 @@ class TelegramBot:
             second_space = text.find(' ', first_space + 1)
         except IndexError:
             bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!!")
+            return
 
         if second_space != -1:
             quote = (text[10:second_space].lower(), text[second_space + 1:])
-            print(quote)
             conn = sqlite3.connect(config.DB_FILE)
             cur = conn.cursor()
             sql = "INSERT INTO quotes VALUES (?,?)"
@@ -148,6 +163,44 @@ class TelegramBot:
         else:
             bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!!")
 
+    def quote(self, bot, update):
+        space = update.message.text.find(' ')
+        conn = sqlite3.connect(config.DB_FILE)
+        c = conn.cursor()
+        if space == -1:
+            c.execute("SELECT * FROM quotes")
+            quotes = c.fetchall()
+            i = self.random_select(len(quotes)-1)
+        else:
+            name = update.message.text[space + 1 :]
+            c.execute("SELECT * FROM quotes WHERE name=?", (name.lower(),))
+            quotes = c.fetchall()
+            if len(quotes) == 0:
+                bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
+                return
+            i = self.random_select(len(quotes)-1)
+        bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[i][1]}" -{quotes[i][0].capitalize()}')
+
+    def viisaus(self, bot, update):
+        conn = sqlite3.connect(config.DB_FILE)
+        c = conn.cursor()
+        c.execute("SELECT * FROM sananlaskut")
+        wisenings = c.fetchall()
+        i = self.random_select(len(wisenings)-1)
+        bot.send_message(chat_id=update.message.chat_id, text=wisenings[i][0])
+
+    @staticmethod
+    def random_select(max):
+        rand_int = random.randint(0, max)
+        return rand_int
+
+    def create_tables(self):
+        conn = sqlite3.connect(config.DB_FILE)
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS pinned (date text, name text, text text)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS quotes (name text, quote text unique)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS sananlaskut (teksti text)''')
+        conn.close()
 
     def quote(self, bot, update):
         space = update.message.text.find(' ')
