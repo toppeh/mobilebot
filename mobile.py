@@ -7,7 +7,7 @@ import config
 from telegram.ext import Updater, MessageHandler, Filters
 import random
 from time import time
-
+from weather import WeatherGod
 
 
 class TelegramBot:
@@ -28,7 +28,9 @@ class TelegramBot:
                          'insv': self.insv,
                          'quoteadd': self.quoteadd,
                          'quote': self.quote,
-                         'viisaus': self.viisaus
+                         'viisaus': self.viisaus,
+                         'saa': self.weather,
+                         'sää': self.weather
                          }
 
         self.users = {}  # user_id : unix timestamp
@@ -241,6 +243,22 @@ class TelegramBot:
         c.execute('''CREATE TABLE IF NOT EXISTS quotes (name text, quote text unique)''')
         c.execute('''CREATE TABLE IF NOT EXISTS sananlaskut (teksti text)''')
         conn.close()
+
+    def weather(self, bot, update):
+
+        try:
+            city = update.message.text[5:]
+            weather = WeatherGod()
+            bot.send_message(chat_id=update.message.chat_id,
+                             text=weather.generateWeatherReport(city))
+        except AttributeError:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="Komento vaatii parametrin >KAUPUNKI< \n"
+                                  "Esim: /saa Hervanta ")
+            return
+
+
+
 
 if __name__ == '__main__':
     TelegramBot()
