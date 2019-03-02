@@ -29,7 +29,8 @@ class TelegramBot:
                          'quoteadd': self.quoteadd,
                          'quote': self.quote,
                          'viisaus': self.viisaus,
-                         'saa': self.weather
+                         'saa': self.weather,
+                         'sää': self.weather
                          }
 
         self.users = {}  # user_id : unix timestamp
@@ -246,7 +247,7 @@ class TelegramBot:
     def weather(self, bot, update):
 
         try:
-            city = update.message.text[4:]
+            city = update.message.text[5:]
             weather = WeatherGod()
             bot.send_message(chat_id=update.message.chat_id,
                              text=weather.generateWeatherReport(city))
