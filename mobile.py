@@ -8,7 +8,7 @@ from telegram.ext import Updater, MessageHandler, Filters
 import random
 from time import time
 
-
+# Sadistista paskaa
 
 class TelegramBot:
     def __init__(self):
