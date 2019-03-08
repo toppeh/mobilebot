@@ -4,7 +4,7 @@ import logging
 import sqlite3
 from datetime import date, timedelta, datetime
 import config
-from telegram.ext import Updater, MessageHandler, Filters
+from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
 import random
 from time import time
 from weather import WeatherGod
@@ -15,9 +15,10 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN_KB)
+        updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
 
+        dispatcher.add_handler(CommandHandler("lupaus", self.lupaus, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
 
@@ -162,7 +163,7 @@ class TelegramBot:
             cur.execute(sql, quote)
             conn.commit()
             conn.close()
-            bot.send_message(chat_id=update.message.chat_id, text="Sitaatti lisätty")
+            bot.send_message(chat_id=update.message.chat_id, text="Sitaatti suhahti")
         else:
             bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!!")
 
@@ -204,18 +205,19 @@ class TelegramBot:
         index = random.randint(0, len(config.MEMBERS)-1)
         bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
 
+    def lupaus(self, bot, update, job_queue):
+        promise = [update.message.chat_id, update.message.message_id, update.message.from_user.username]
+        job_queue.run_once(self.muistutus, 86400, context=promise)
+        update.message.reply_text("Tää muistetaan!")
+
+    def muistutus(self, bot, job):
+        bot.forwardMessage(job.context[0], job.context[0], job.context[1], disable_notification=True)
+        bot.send_message(chat_id=job.context[0], text="@"+job.context[2], disable_notifications=True)
+
     @staticmethod
     def random_select(max):
         rand_int = random.randint(0, max)
         return rand_int
-
-    def create_tables(self):
-        conn = sqlite3.connect(config.DB_FILE)
-        c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS pinned (date text, name text, text text)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS quotes (name text, quote text unique)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS sananlaskut (teksti text)''')
-        conn.close()
 
     def create_tables(self):
         conn = sqlite3.connect(config.DB_FILE)
