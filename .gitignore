@@ -1,3 +1,6 @@
+share/
+pyvenv.cfg
+lib64
 config.py
 config.pyc
 __pycache__/
@@ -6,4 +9,6 @@ pinned.txt
 .idea/
 venv/
 mobile.db
-
+.gitignore
+bin/
+lib/

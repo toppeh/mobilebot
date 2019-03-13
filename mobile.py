@@ -2,6 +2,7 @@
 
 import logging
 import sqlite3
+
 from datetime import date, timedelta, datetime
 import config
 from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
@@ -15,9 +16,10 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN)
+        updater = Updater(token=config.TOKEN_KB)
         dispatcher = updater.dispatcher
 
+        dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
         dispatcher.add_handler(CommandHandler("lupaus", self.lupaus, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
@@ -33,6 +35,7 @@ class TelegramBot:
                          'saa': self.weather,
                          'sää': self.weather,
                          "kuka": self.kuka
+
                          }
 
         self.users = {}  # user_id : unix timestamp
@@ -197,7 +200,6 @@ class TelegramBot:
 
     def kuka(self, bot, update):
         question = update.message.text.find(" ")
-        print(update.message.text[-1])
         if question == -1:
             bot.send_message(chat_id=update.message.chat_id, text="Eipä ollu kysymys...")
             return
@@ -227,6 +229,8 @@ class TelegramBot:
         c.execute('''CREATE TABLE IF NOT EXISTS pinned (date text, name text, text text)''')
         c.execute('''CREATE TABLE IF NOT EXISTS quotes (name text, quote text unique)''')
         c.execute('''CREATE TABLE IF NOT EXISTS sananlaskut (teksti text)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS adjektiivit (adj text)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS substantiivit (sub text)''')
         conn.close()
 
     def weather(self, bot, update):
@@ -242,6 +246,15 @@ class TelegramBot:
                                   "Esim: /saa Hervanta ")
             return
 
+    def kick(self, bot, update,job_queue):
+        try:
+            bot.kickChatMember(update.message.chat.id, update.message.from_user.id)
+            job_queue.run_once(self.invite, 60, context=[update.message.chat_id, update.message.from_user.id])
+        except:
+            bot.send_message(chat_id=update.message.chat_id, text="Vielä joku päivä...")
+
+    def invite(self, bot, job):
+        bot.unBanChatMember(chat_id=job.context[0], user_id=job.context[1])
 '''
     def juoma(self, bot, update):
 
