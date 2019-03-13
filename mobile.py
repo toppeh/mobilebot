@@ -115,6 +115,8 @@ class TelegramBot:
             if command in self.commands:
                 if self.cooldownFilter(update):
                     self.commands[command](bot, update)
+            else:
+                bot.send_message(chat_id=update.message.chat_id, text="/" + command)
 
     @staticmethod
     def commandParser(msg):
@@ -240,8 +242,55 @@ class TelegramBot:
                                   "Esim: /saa Hervanta ")
             return
 
+'''
+    def juoma(self, bot, update):
+
+        juomat = ('olutta',
+                  'Jaloviinaa*',
+                  'Jaloviinaa**',
+                  'Jaloviinaa***',
+                  'Vergiä',
+                  'vodkaa',
+                  'kiljua',
+                  'glögiä',
+                  'vettä',
+                  'Coca-Colaa',
+                  'tequilaa',
+                  'energiajuomaa',
+                  'lonkeroa',
+                  'giniä',
+                  'Spriteä',
+                  'Gambinaa',
+                  'maitoa',
+                  'kahvia',
+                  'kuohuviiniä',
+                  'shamppanjaa',
+                  'pontikkaa',
+                  'simaa',
+                  'sangriaa',
+                  'martinia',
+                  'Bacardia',
+                  'tonic-vettä',
+                  'siideriä',
+                  'absinttia',
+                  'punaviiniä',
+                  'valkoviiniä',
+                  'roséviiniä',
+                  'bensaa',
+                  )
+
+        resepti = ""
+        for i in range(1):
+            tilavuus = random.randrange(5, 45, 5)
+            resepti += tilavuus + " cl " + random.choice(juomat)
+
+        resepti += "."
 
 
+    def (self, bot, update):
+        choices = {1:'Jallu', 2:'Kalja', 3:'Lonkero'}
+        text = update.message.text
+'''
 
 if __name__ == '__main__':
     TelegramBot()
