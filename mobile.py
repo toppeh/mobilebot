@@ -34,7 +34,8 @@ class TelegramBot:
                          'viisaus': self.viisaus,
                          'saa': self.weather,
                          'sää': self.weather,
-                         "kuka": self.kuka
+                         "kuka": self.kuka,
+                         "value_of_content": self.voc
 
                          }
 
@@ -255,6 +256,9 @@ class TelegramBot:
 
     def invite(self, bot, job):
         bot.unBanChatMember(chat_id=job.context[0], user_id=job.context[1])
+
+    def voc(selfself, bot, update):
+        bot.send_message(chat_id=update.message.chat_id, text="Value of content: Laskussa")
 '''
     def juoma(self, bot, update):
 
