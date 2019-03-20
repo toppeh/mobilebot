@@ -35,7 +35,8 @@ class TelegramBot:
                          'saa': self.weather,
                          'sää': self.weather,
                          "kuka": self.kuka,
-                         "value_of_content": self.voc
+                         "value_of_content": self.voc,
+                         "cocktail": self.cocktail
 
                          }
 
@@ -257,57 +258,83 @@ class TelegramBot:
     def invite(self, bot, job):
         bot.unBanChatMember(chat_id=job.context[0], user_id=job.context[1])
 
-    def voc(selfself, bot, update):
+    def voc(self, bot, update):
         bot.send_message(chat_id=update.message.chat_id, text="Value of content: Laskussa")
-'''
-    def juoma(self, bot, update):
 
-        juomat = ('olutta',
-                  'Jaloviinaa*',
-                  'Jaloviinaa**',
-                  'Jaloviinaa***',
-                  'Vergiä',
-                  'vodkaa',
-                  'kiljua',
-                  'glögiä',
-                  'vettä',
-                  'Coca-Colaa',
-                  'tequilaa',
-                  'energiajuomaa',
-                  'lonkeroa',
-                  'giniä',
-                  'Spriteä',
-                  'Gambinaa',
-                  'maitoa',
-                  'kahvia',
-                  'kuohuviiniä',
-                  'shamppanjaa',
-                  'pontikkaa',
-                  'simaa',
-                  'sangriaa',
-                  'martinia',
-                  'Bacardia',
-                  'tonic-vettä',
-                  'siideriä',
-                  'absinttia',
-                  'punaviiniä',
-                  'valkoviiniä',
-                  'roséviiniä',
-                  'bensaa',
-                  )
+    def cocktail(self, bot, update):
 
-        resepti = ""
-        for i in range(1):
-            tilavuus = random.randrange(5, 45, 5)
-            resepti += tilavuus + " cl " + random.choice(juomat)
+        # tää pitäis varmaan piilottaa johonki
+        ingredients = (
+            'olutta',
+            'Jaloviinaa*',
+            'Jaloviinaa**',
+            'Jaloviinaa***',
+            'Vergiä',
+            'vodkaa',
+            'kiljua',
+            'glögiä',
+            'vettä',
+            'Coca-Colaa',
+            'tequilaa',
+            'energiajuomaa',
+            'lonkeroa',
+            'giniä',
+            'Spriteä',
+            'Gambinaa',
+            'maitoa',
+            'kahvia',
+            'kuohuviiniä',
+            'shamppanjaa',
+            'pontikkaa',
+            'simaa',
+            'sangriaa',
+            'martinia',
+            'Bacardia',
+            'tonic-vettä',
+            'siideriä',
+            'absinttia',
+            'punaviiniä',
+            'valkoviiniä',
+            'roséviiniä',
+            'bensaa',
+            'siipikastiketta',
+            'Jägermeisteria',
+            'Baileys',
+            'ananasmehua',
+            'rommia',
+            'konjakkia',
+            'Carilloa',
+            'salmiakkikossua',
+            'Valdemaria',
+            'mitä tahansa',
+            'viskiä'
+            )
 
-        resepti += "."
+        conn = sqlite3.connect(config.DB_FILE)
+        c = conn.cursor()
+        sql = '''SELECT * FROM adjektiivit ORDER BY RANDOM() LIMIT 1'''
+        c.execute(sql)
+        adj = c.fetchall()[0][0]  # fetchall returns tuple in list
 
+        sql = '''SELECT * FROM substantiivit ORDER BY RANDOM() LIMIT 1'''
+        c.execute(sql)
+        sub = c.fetchall()[0][0]
 
-    def (self, bot, update):
-        choices = {1:'Jallu', 2:'Kalja', 3:'Lonkero'}
-        text = update.message.text
-'''
+        conn.close()
+
+        msg = str(adj) + " " + str(sub) + ":\n"
+
+        # avoid getting the same drink twice:
+        drinklist = [i for i in ingredients]
+
+        for i in range(random.randint(1, 5)):
+            rnd = random.choice(drinklist)
+            vol = str(random.randrange(5, 35, 5))
+            msg += vol + " cl " + random.choice(ingredients) + "\n"
+            drinklist.remove(rnd)
+
+        bot.send_message(chat_id=update.message.chat_id, text=msg)
+
 
 if __name__ == '__main__':
     TelegramBot()
