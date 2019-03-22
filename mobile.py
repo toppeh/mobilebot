@@ -16,9 +16,9 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN_KB)
+        updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
-
+        
         dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
         dispatcher.add_handler(CommandHandler("lupaus", self.lupaus, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
@@ -36,6 +36,7 @@ class TelegramBot:
                          'sää': self.weather,
                          "kuka": self.kuka,
                          "value_of_content": self.voc,
+                         "voc": self.voc,
                          "cocktail": self.cocktail
 
                          }
@@ -201,6 +202,10 @@ class TelegramBot:
         bot.send_message(chat_id=update.message.chat_id, text=wisenings[i][0])
 
     def kuka(self, bot, update):
+        index = random.randint(0, len(config.MEMBERS)-1)
+        if update.message.reply_to_message is not None:
+            bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
+            return
         question = update.message.text.find(" ")
         if question == -1:
             bot.send_message(chat_id=update.message.chat_id, text="Eipä ollu kysymys...")
@@ -208,7 +213,6 @@ class TelegramBot:
         elif update.message.text[-1] != "?":
             bot.send_message(chat_id=update.message.chat_id, text="Kysymysmuotoisen virkkeen tulee päättyä kysymystä ilmaisevaan välimerkkiin.")
             return
-        index = random.randint(0, len(config.MEMBERS)-1)
         bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
 
     def lupaus(self, bot, update, job_queue):
