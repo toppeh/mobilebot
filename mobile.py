@@ -18,7 +18,7 @@ class TelegramBot:
 
         updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
-        
+
         dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
         dispatcher.add_handler(CommandHandler("lupaus", self.lupaus, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
@@ -88,7 +88,7 @@ class TelegramBot:
 
     def cooldownFilter(self, update):
 
-        cooldown = 15
+        cooldown = 15  # time in seconds
 
         if not update.message.from_user.id:
             # Some updates are not from any user -- ie when bot is added to a group
@@ -206,21 +206,27 @@ class TelegramBot:
         if update.message.reply_to_message is not None:
             bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
             return
+
+    @staticmethod
+    def kuka(bot, update):
         question = update.message.text.find(" ")
         if question == -1:
             bot.send_message(chat_id=update.message.chat_id, text="Eipä ollu kysymys...")
             return
         elif update.message.text[-1] != "?":
-            bot.send_message(chat_id=update.message.chat_id, text="Kysymysmuotoisen virkkeen tulee päättyä kysymystä ilmaisevaan välimerkkiin.")
+            bot.send_message(chat_id=update.message.chat_id, text="Kysymysmuotoisen virkkeen tulee"
+                                                                  "päättyä kysymystä ilmaisevaan välimerkkiin.")
             return
         bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
 
-    def lupaus(self, bot, update, job_queue):
+    @staticmethod
+    def lupaus(bot, update, job_queue):
         promise = [update.message.chat_id, update.message.message_id, update.message.from_user.username]
         job_queue.run_once(self.muistutus, 86400, context=promise)
         update.message.reply_text("Tää muistetaan!")
 
-    def muistutus(self, bot, job):
+    @staticmethod
+    def muistutus(bot, job):
         bot.forwardMessage(job.context[0], job.context[0], job.context[1], disable_notification=True)
         bot.send_message(chat_id=job.context[0], text="@"+job.context[2], disable_notifications=True)
 
@@ -229,7 +235,8 @@ class TelegramBot:
         rand_int = random.randint(0, max)
         return rand_int
 
-    def create_tables(self):
+    @staticmethod
+    def create_tables():
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS pinned (date text, name text, text text)''')
@@ -239,7 +246,8 @@ class TelegramBot:
         c.execute('''CREATE TABLE IF NOT EXISTS substantiivit (sub text)''')
         conn.close()
 
-    def weather(self, bot, update):
+    @staticmethod
+    def weather(bot, update):
 
         try:
             city = update.message.text[5:]
@@ -252,39 +260,59 @@ class TelegramBot:
                                   "Esim: /saa Hervanta ")
             return
 
-    def kick(self, bot, update,job_queue):
+    @staticmethod
+    def kick(bot, update,job_queue):
         try:
             bot.kickChatMember(update.message.chat.id, update.message.from_user.id)
             job_queue.run_once(self.invite, 60, context=[update.message.chat_id, update.message.from_user.id])
         except:
             bot.send_message(chat_id=update.message.chat_id, text="Vielä joku päivä...")
 
-    def invite(self, bot, job):
+    @staticmethod
+    def invite(bot, job):
         bot.unBanChatMember(chat_id=job.context[0], user_id=job.context[1])
 
-    def voc(self, bot, update):
+    @staticmethod
+    def voc(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text="Value of content: Laskussa")
 
-    def cocktail(self, bot, update):
+    @staticmethod
+    def cocktail(bot, update):
 
-        # tää pitäis varmaan piilottaa johonki
-        ingredients = (
-            'olutta',
+        spirits = (
             'Jaloviinaa*',
             'Jaloviinaa**',
             'Jaloviinaa***',
             'Vergiä',
             'vodkaa',
+            'tequilaa',
+            'giniä',
+            'Bacardia',
+            'martinia',
+            'absinttia',
+            'punaviiniä',
+            'valkoviiniä',
+            'Jägermeisteria',
+            'viskiä',
+            'salmiakkikossua',
+            'rommia',
+            'konjakkia',
+            'Baileys',
+            'Gambinaa',
+            'Carilloa',
+            'Valdemaria',
+            '???'
+        )
+
+        mixers = (
+            'olutta',
             'kiljua',
             'glögiä',
             'vettä',
             'Coca-Colaa',
-            'tequilaa',
             'energiajuomaa',
             'lonkeroa',
-            'giniä',
             'Spriteä',
-            'Gambinaa',
             'maitoa',
             'kahvia',
             'kuohuviiniä',
@@ -292,33 +320,24 @@ class TelegramBot:
             'pontikkaa',
             'simaa',
             'sangriaa',
-            'martinia',
-            'Bacardia',
             'tonic-vettä',
             'siideriä',
-            'absinttia',
-            'punaviiniä',
-            'valkoviiniä',
             'roséviiniä',
             'bensaa',
-            'siipikastiketta',
-            'Jägermeisteria',
-            'Baileys',
+            'kirsikkamehua',
             'ananasmehua',
-            'rommia',
-            'konjakkia',
-            'Carilloa',
-            'salmiakkikossua',
-            'Valdemaria',
+            'appelsiinimehua',
+            'omenamehua',
             'mitä tahansa',
-            'viskiä'
-            )
-
+            'piimää',
+            'Muumi-limpparia',
+            'extra virgin -oliiviöljyä'
+        )
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         sql = '''SELECT * FROM adjektiivit ORDER BY RANDOM() LIMIT 1'''
         c.execute(sql)
-        adj = c.fetchall()[0][0]  # fetchall returns tuple in list
+        adj = c.fetchall()[0][0].capitalize()  # fetchall returns tuple in list
 
         sql = '''SELECT * FROM substantiivit ORDER BY RANDOM() LIMIT 1'''
         c.execute(sql)
@@ -326,16 +345,39 @@ class TelegramBot:
 
         conn.close()
 
+        # generate cocktail name
         msg = str(adj) + " " + str(sub) + ":\n"
 
-        # avoid getting the same drink twice:
-        drinklist = [i for i in ingredients]
+        floor = random.randint(0, 1)
 
-        for i in range(random.randint(1, 5)):
-            rnd = random.choice(drinklist)
-            vol = str(random.randrange(5, 35, 5))
-            msg += vol + " cl " + random.choice(ingredients) + "\n"
-            drinklist.remove(rnd)
+        # generate spirit(s)
+        used = []
+
+        for i in range(floor, 3):
+            index = random.randint(0, len(spirits) - 1)
+            while index in used:
+                index = random.randint(0, len(spirits) - 1)
+            used.append(index)
+            rnd = spirits[index]
+            vol = str(random.randrange(2, 8, 2))
+            msg += "-" + vol + (3 - len(str(vol))) * " " + "cl " + rnd + "\n"
+
+        # generate mixer(s)
+        used = []
+
+        if floor == 0:
+            # in case of no spirits, lift the floor to 1
+            # so recipe contains at least one mixer
+            floor += 1
+
+        for i in range(random.randint(floor, 3)):
+            index = random.randint(0, len(spirits) - 1)
+            while index in used:
+                index = random.randint(0, len(spirits) - 1)
+            used.append(index)
+            rnd = mixers[index]
+            vol = str(random.randrange(5, 20, 5))
+            msg += "-" + vol + (3 - len(str(vol))) * " " + "cl " + rnd + "\n"
 
         bot.send_message(chat_id=update.message.chat_id, text=msg)
 
