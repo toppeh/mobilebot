@@ -16,7 +16,7 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN_KB)
+        updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
@@ -49,11 +49,16 @@ class TelegramBot:
 
     @staticmethod
     def wabu(bot, update):
-        wabu = date(2019, 4, 15)
-        tanaan = date.today()
+        wabu = datetime(2019, 4, 15, 13)
+        tanaan = datetime.now()
         erotus = wabu - tanaan
+        hours = erotus.seconds // 3600
+        minutes = (erotus.seconds - hours*3600) // 60
+        seconds = erotus.seconds - hours * 3600 - minutes * 60
+
         bot.send_message(chat_id=update.message.chat_id,
-                         text=f'Wabun alkuun on {erotus.days} päivää', disable_notification=True)
+                         text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja {seconds} '
+                         f'sekuntia', disable_notification=True)
 
     @staticmethod
     def kiitos(bot, update):
@@ -354,7 +359,7 @@ class TelegramBot:
             used.append(index)
             rnd = spirits[index]
             vol = str(random.randrange(2, 8, 2))
-            msg += "-" + vol + (3 - len(str(vol))) * " " + "cl " + rnd + "\n"
+            msg += "-" + vol + " " + "cl " + rnd + "\n"
 
         # generate mixer(s)
         used = []
@@ -371,7 +376,7 @@ class TelegramBot:
             used.append(index)
             rnd = mixers[index]
             vol = str(random.randrange(5, 20, 5))
-            msg += "-" + vol + (3 - len(str(vol))) * " " + "cl " + rnd + "\n"
+            msg += "-" + vol + " " + "cl " + rnd + "\n"
 
         bot.send_message(chat_id=update.message.chat_id, text=msg)
 
