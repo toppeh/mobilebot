@@ -19,25 +19,25 @@ class TelegramBot:
         updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
 
-        dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
-        dispatcher.add_handler(CommandHandler("lupaus", self.lupaus, pass_job_queue=True))
+        dispatcher.add_handler(CommandHandler("kick", kick, pass_job_queue=True))
+        dispatcher.add_handler(CommandHandler("lupaus", lupaus, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
 
-        self.commands = {'wabu': self.wabu,
-                         'kiitos': self.kiitos,
-                         'sekseli': self.sekseli,
-                         'pöytä': self.pöytä,
-                         'insv': self.insv,
+        self.commands = {'wabu': wabu,
+                         'kiitos': kiitos,
+                         'sekseli': sekseli,
+                         'pöytä': pöytä,
+                         'insv': insv,
                          'quoteadd': self.quoteadd,
                          'quote': self.quote,
                          'viisaus': self.viisaus,
-                         'saa': self.weather,
-                         'sää': self.weather,
-                         "kuka": self.kuka,
-                         "value_of_content": self.voc,
-                         "voc": self.voc,
-                         "cocktail": self.cocktail
+                         'saa': weather,
+                         'sää': weather,
+                         "kuka": kuka,
+                         "value_of_content": voc,
+                         "voc": voc,
+                         "cocktail": cocktail
 
                          }
 
@@ -201,14 +201,12 @@ class TelegramBot:
         i = self.random_select(len(wisenings)-1)
         bot.send_message(chat_id=update.message.chat_id, text=wisenings[i][0])
 
-    def kuka(self, bot, update):
+    @staticmethod
+    def kuka(bot, update):
         index = random.randint(0, len(config.MEMBERS)-1)
         if update.message.reply_to_message is not None:
             bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
             return
-
-    @staticmethod
-    def kuka(bot, update):
         question = update.message.text.find(" ")
         if question == -1:
             bot.send_message(chat_id=update.message.chat_id, text="Eipä ollu kysymys...")
@@ -222,7 +220,7 @@ class TelegramBot:
     @staticmethod
     def lupaus(bot, update, job_queue):
         promise = [update.message.chat_id, update.message.message_id, update.message.from_user.username]
-        job_queue.run_once(self.muistutus, 86400, context=promise)
+        job_queue.run_once(muistutus, 86400, context=promise)
         update.message.reply_text("Tää muistetaan!")
 
     @staticmethod
