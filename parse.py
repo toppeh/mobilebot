@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/python3
 
 """
@@ -21,7 +22,9 @@ last = ''
 
 URL = "https://fi.wiktionary.org/w/api.php"
 URL = "https://fi.wiktionary.org/w/api.php?action=query&format=json&list=categorymembers&cmtitle=Luokka:Suomen_kielen_substantiivit&cmprop=title&cmlimit=500&"
-url = "https://fi.wiktionary.org/w/api.php?action=query&format=json&list=categorymembers&cmtitle=Luokka:Suomen_kielen_substantiivit&cmprop=title&cmlimit=500"
+url_sub = "https://fi.wiktionary.org/w/api.php?action=query&format=json&list=categorymembers&cmtitle=Luokka:Suomen_kielen_substantiivit&cmprop=title&cmlimit=500"
+url_adj = "https://fi.wiktionary.org/w/api.php?action=query&format=json&list=categorymembers&cmtitle=Luokka:Suomen_kielen_adjektiivit&cmprop=title&cmlimit=500"
+url = url_adj #replace this
 PARAMS = {
     'action': "parse",
     'pageid': 55732,
@@ -44,13 +47,13 @@ while True:
         n = 0
         if i not in subs:
             subs.append(i['title'])
-            if i['title'] == "!kung":
+            if i['title'] == "öölantilainen": #adjektiiveille korvaa tama "!kung" :lla
                 break
     n = len(data)-1
     print(data[n])
     index = len(subs) - 1
     if 'continue' in DATA:
-        url = URL + "&cmcontinue=" + DATA['continue']['cmcontinue']
+        url = url + "&cmcontinue=" + DATA['continue']['cmcontinue']
         haut += 1
         print(haut)
         print(url)
@@ -59,7 +62,7 @@ while True:
         break
 # 55732
 
-'''
+''' sananlaskuparseri osioo
 lines = wikitext.split('*')
 #print(wikitext)
 entries = []
@@ -74,7 +77,9 @@ for line in lines:
 '''
 conn = sqlite3.connect('mobile.db')
 c = conn.cursor()
-sql = "INSERT INTO substantiivit VALUES (?)"
+c.execute('''CREATE TABLE IF NOT EXISTS adjektiivit (adj text)''')
+c.execute('''CREATE TABLE IF NOT EXISTS substantiivit (sub text)''')
+sql = "INSERT INTO adjektiivit VALUES (?)"  # TÄÄ ON MYÖS TÄRKEÄ
 for i in subs:
     c.execute(sql, (i,))
 
