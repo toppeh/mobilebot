@@ -19,8 +19,8 @@ class TelegramBot:
         updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
 
-#        dispatcher.add_handler(CommandHandler("kick", kick, pass_job_queue=True))
-#        dispatcher.add_handler(CommandHandler("lupaus", lupaus, pass_job_queue=True))
+        #dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
+        dispatcher.add_handler(CommandHandler("muistutus", self.lupaus, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
 
@@ -165,7 +165,8 @@ class TelegramBot:
         try:
             second_space = text.find(' ', first_space + 1)
         except IndexError:
-            bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!!")
+            bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
+                                                                  " <nimi> <sitaatti)")
             return
 
         if second_space != -1:
@@ -178,7 +179,8 @@ class TelegramBot:
             conn.close()
             bot.send_message(chat_id=update.message.chat_id, text="Sitaatti suhahti")
         else:
-            bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!!")
+            bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
+                                                                  " <nimi> <sitaatti)")
 
     def quote(self, bot, update):
         space = update.message.text.find(' ')
@@ -224,9 +226,19 @@ class TelegramBot:
 
     @staticmethod
     def lupaus(bot, update, job_queue):
-        promise = [update.message.chat_id, update.message.message_id, update.message.from_user.username]
-        job_queue.run_once(muistutus, 86400, context=promise)
-        update.message.reply_text("Tää muistetaan!")
+        # yyyy-mm-dd hh:min
+        text = update.message.text
+        try:
+            dt = datetime.strptime(text[11:25], '%Y-%m-%d %H:%M')
+            diff = dt - datetime.now()
+            if diff.total_seconds() > 0:
+                promise = [update.message.chat_id, update.message.message_id, update.message.from_user.username]
+                job_queue.run_once(TelegramBot.muistutus, diff.total_seconds(), context=promise)
+                update.message.reply_text("Tää muistetaan.")
+            else:
+                bot.send_message(chat_id=update.message.chat_id, text='Toihan on menneisyydessä')
+        except ValueError:
+            bot.send_message(chat_id=update.message.chat_id, text='/muistutus vuosi-kk-päivä tunnit:minuutit')
 
     @staticmethod
     def muistutus(bot, job):
