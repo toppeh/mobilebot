@@ -19,25 +19,25 @@ class TelegramBot:
         updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
 
-        dispatcher.add_handler(CommandHandler("kick", kick, pass_job_queue=True))
-        dispatcher.add_handler(CommandHandler("lupaus", lupaus, pass_job_queue=True))
+#        dispatcher.add_handler(CommandHandler("kick", kick, pass_job_queue=True))
+#        dispatcher.add_handler(CommandHandler("lupaus", lupaus, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
 
-        self.commands = {'wabu': wabu,
-                         'kiitos': kiitos,
-                         'sekseli': sekseli,
-                         'pöytä': pöytä,
-                         'insv': insv,
+        self.commands = {'wabu': self.wabu,
+                         'kiitos': self.kiitos,
+                         'sekseli': self.sekseli,
+                         'pöytä': self.pöytä,
+                         'insv': self.insv,
                          'quoteadd': self.quoteadd,
                          'quote': self.quote,
                          'viisaus': self.viisaus,
-                         'saa': weather,
-                         'sää': weather,
-                         "kuka": kuka,
-                         "value_of_content": voc,
-                         "voc": voc,
-                         "cocktail": cocktail
+                         'saa': self.weather,
+                         'sää': self.weather,
+                         "kuka": self.kuka,
+                         "value_of_content": self.voc,
+                         "voc": self.voc,
+                         "cocktail": self.cocktail
 
                          }
 
@@ -243,7 +243,7 @@ class TelegramBot:
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS pinned (date text, name text, text text)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS quotes (name text, quote text unique)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS quotes (name text, quote text)''')
         c.execute('''CREATE TABLE IF NOT EXISTS sananlaskut (teksti text)''')
         c.execute('''CREATE TABLE IF NOT EXISTS adjektiivit (adj text)''')
         c.execute('''CREATE TABLE IF NOT EXISTS substantiivit (sub text)''')
