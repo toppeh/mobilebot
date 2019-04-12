@@ -67,10 +67,6 @@ class TelegramBot:
         wabu = datetime(2019, 12, 20)
         tanaan = datetime.now()
         erotus = wabu - tanaan
-        hours = erotus.seconds // 3600
-        minutes = (erotus.seconds - hours * 3600) // 60
-        seconds = erotus.seconds - hours * 3600 - minutes * 60
-
         bot.send_message(chat_id=update.message.chat_id,
                          text=f'Ensi-iltaan on {erotus.days} päivää.', disable_notification=True)
 
