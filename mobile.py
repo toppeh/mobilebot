@@ -16,7 +16,7 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN)
+        updater = Updater(token=config.TOKEN_KB)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
@@ -161,7 +161,7 @@ class TelegramBot:
     def quoteadd(self, bot, update):
         text = update.message.text
         first_space = 9
-        if first_space != ' ':
+        if text[first_space] != ' ':
             return False
         try:
             second_space = text.find(' ', first_space + 1)
@@ -188,26 +188,24 @@ class TelegramBot:
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         if space == -1:
-            c.execute("SELECT * FROM quotes")
+            c.execute("SELECT * FROM quotes ORDER BY RANDOM() LIMIT 1")
             quotes = c.fetchall()
-            i = self.random_select(len(quotes)-1)
+
         else:
             name = update.message.text[space + 1 :]
-            c.execute("SELECT * FROM quotes WHERE name=?", (name.lower(),))
+            c.execute("SELECT * FROM quotes WHERE name=? ORDER BY RANDOM() LIMIT 1", (name.lower(),))
             quotes = c.fetchall()
             if len(quotes) == 0:
                 bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
                 return
-            i = self.random_select(len(quotes)-1)
-        bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[i][1]}" -{quotes[i][0].capitalize()}')
+        bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][1]}" -{quotes[0][0].capitalize()}')
 
     def viisaus(self, bot, update):
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
-        c.execute("SELECT * FROM sananlaskut")
+        c.execute("SELECT * FROM sananlaskut ORDER BY RANDOM() LIMIT 1")
         wisenings = c.fetchall()
-        i = self.random_select(len(wisenings)-1)
-        bot.send_message(chat_id=update.message.chat_id, text=wisenings[i][0])
+        bot.send_message(chat_id=update.message.chat_id, text=wisenings[0][0])
 
     @staticmethod
     def kuka(bot, update):
