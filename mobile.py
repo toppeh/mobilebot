@@ -87,10 +87,8 @@ class TelegramBot:
 
     @staticmethod
     def aikaTarkistus(viesti_aika):
-        if datetime.today() - viesti_aika < timedelta(0, 30):
-            return True
-        else:
-            return False
+    # Makes sure that commands older than 30 seconds won't go through
+        return datetime.today() - viesti_aika < timedelta(0, 30)
 
     def cooldownFilter(self, update):
 
@@ -107,7 +105,7 @@ class TelegramBot:
             self.users[id] = time()
             return True
 
-        elif id in self.users.keys():
+        else:
             # old user
             if time() - self.users[id] < cooldown:
                 # caught in spam filter
@@ -163,6 +161,8 @@ class TelegramBot:
     def quoteadd(self, bot, update):
         text = update.message.text
         first_space = 9
+        if first_space != ' ':
+            return False
         try:
             second_space = text.find(' ', first_space + 1)
         except IndexError:
