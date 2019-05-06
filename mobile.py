@@ -50,7 +50,7 @@ class TelegramBot:
 
     @staticmethod
     def wabu(bot, update):
-        wabu = datetime(2019, 4, 15, 13)
+        wabu = datetime(2020, 4, 13, 13)
         tanaan = datetime.now()
         erotus = wabu - tanaan
         hours = erotus.seconds // 3600
@@ -60,6 +60,7 @@ class TelegramBot:
         bot.send_message(chat_id=update.message.chat_id,
                          text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja {seconds} '
                          f'sekuntia', disable_notification=True)
+
 
     @staticmethod
     def kiitos(bot, update):
@@ -238,7 +239,7 @@ class TelegramBot:
             else:
                 bot.send_message(chat_id=update.message.chat_id, text='Toihan on menneisyydessä')
         except ValueError:
-            bot.send_message(chat_id=update.message.chat_id, text='/muistutus vuosi-kk-päivä tunnit:minuutit')
+            bot.send_message(chat_id=update.message.chat_id, text='/muistutus yyyy-(m)m-(d)d hh:mm')
 
     @staticmethod
     def muistutus(bot, job):
@@ -279,7 +280,7 @@ class TelegramBot:
     def kick(bot, update,job_queue):
         try:
             bot.kickChatMember(update.message.chat.id, update.message.from_user.id)
-            job_queue.run_once(self.invite, 60, context=[update.message.chat_id, update.message.from_user.id])
+            job_queue.run_once(TelegramBot.invite, 60, context=[update.message.chat_id, update.message.from_user.id])
         except:
             bot.send_message(chat_id=update.message.chat_id, text="Vielä joku päivä...")
 
