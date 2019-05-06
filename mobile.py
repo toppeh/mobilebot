@@ -16,7 +16,7 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN_KB)
+        updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
@@ -358,6 +358,10 @@ class TelegramBot:
         sub = c.fetchall()[0][0]
 
         conn.close()
+
+        if update.message.text[0:12] == '/cocktail -n':
+            bot.send_message(chat_id=update.message.chat_id, text=f'{adj} {sub}', disable_notification=True)
+            return
 
         # generate cocktail name
         msg = str(adj) + " " + str(sub) + ":\n"
