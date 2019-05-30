@@ -16,7 +16,7 @@ class TelegramBot:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', level=logging.INFO)
 
-        updater = Updater(token=config.TOKEN_KB)
+        updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
