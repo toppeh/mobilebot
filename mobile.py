@@ -23,6 +23,7 @@ class TelegramBot:
         dispatcher.add_handler(CommandHandler("muistutus", self.lupaus, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
+        dispatcher.job_queue.run_repeating(self.voc_check, interval=60, first=5)
 
         self.commands = {'wabu': self.wabu,
                          'kiitos': self.kiitos,
@@ -42,7 +43,7 @@ class TelegramBot:
                          }
 
         self.users = {}  # user_id : unix timestamp
-
+        self.vocq = list()
         self.create_tables()
 
         updater.start_polling()
@@ -92,7 +93,7 @@ class TelegramBot:
 
     def cooldownFilter(self, update):
 
-        cooldown = 15  # time in seconds
+        cooldown = 1  # time in seconds
 
         if not update.message.from_user.id:
             # Some updates are not from any user -- ie when bot is added to a group
@@ -127,6 +128,7 @@ class TelegramBot:
                     self.commands[command](bot, update)
             else:
                 bot.send_message(chat_id=update.message.chat_id, text="/" + command)
+        self.vocq.append(time())
 
     @staticmethod
     def commandParser(msg):
@@ -182,6 +184,8 @@ class TelegramBot:
         else:
             bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
                                                                   " <nimi> <sitaatti)")
+        if update.message.chat_id != config.MOBILE_ID:
+            bot.send_message(chat_id=config.MOBILE_ID, text=f'{update.message.from_user.username} lisäsi sitaatin jossain muualla kuin täällä o.O')
 
     def quote(self, bot, update):
         space = update.message.text.find(' ')
@@ -286,9 +290,19 @@ class TelegramBot:
     def invite(bot, job):
         bot.unBanChatMember(chat_id=job.context[0], user_id=job.context[1])
 
-    @staticmethod
-    def voc(bot, update):
-        bot.send_message(chat_id=update.message.chat_id, text="Value of content: Laskussa")
+    def voc(self, bot, update):
+        if len(self.vocq) > 2:
+            bot.send_message(chat_id=update.message.chat_id, text="Value of content: Laskussa")
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text="Value of content: Nousussa")
+
+    def voc_check(self, bot, job):
+        now = time()
+        while len(self.vocq) > 0:
+            if now - self.vocq[0] > 3600:
+                self.vocq.pop(0)
+            else:
+                return
 
     @staticmethod
     def cocktail(bot, update):
