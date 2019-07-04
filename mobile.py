@@ -193,7 +193,7 @@ class TelegramBot:
             bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
                                                                   " <nimi> <sitaatti)")
         if update.message.chat_id != config.MOBILE_ID:
-            bot.send_message(chat_id=config.MOBILE_ID, text=f'{update.message.from_user.username} lisäsi sitaatin jossain muualla kuin täällä o.O')
+            bot.send_message(chat_id=config.MOBILE_ID, text=f'@{update.message.from_user.username} lisäsi sitaatin jossain muualla kuin täällä o.O')
 
     def quote(self, bot, update):
         space = update.message.text.find(' ')
