@@ -29,7 +29,7 @@ class TelegramBot:
         self.commands = {'wabu': self.wabu,
                          'kiitos': self.kiitos,
                          'sekseli': self.sekseli,
-                         'pöytä': self.pöytä,
+                         'poyta': self.pöytä,
                          'insv': self.insv,
                          'quoteadd': self.quoteadd,
                          'quote': self.quote,
