@@ -23,6 +23,7 @@ class TelegramBot:
         dispatcher.add_handler(CommandHandler("muistutus", self.lupaus, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
+        dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
         dispatcher.job_queue.run_repeating(self.voc_check, interval=60, first=5)
 
         self.commands = {'wabu': self.wabu,
@@ -127,7 +128,8 @@ class TelegramBot:
                 if self.cooldownFilter(update):
                     self.commands[command](bot, update)
             else:
-                bot.send_message(chat_id=update.message.chat_id, text="/" + command)
+                if random.randint(1,5) < 2:
+                    bot.send_message(chat_id=update.message.chat_id, text="/" + command)
         self.vocq.append(time())
 
     @staticmethod
@@ -412,6 +414,12 @@ class TelegramBot:
             msg += "-" + vol + " " + "cl " + rnd + "\n"
 
         bot.send_message(chat_id=update.message.chat_id, text=msg)
+
+    @staticmethod
+    def huuto(bot, update):
+        caps = update.message.text.upper()
+        if caps == update.message.text and random.randint(1,5) < 2:
+            bot.send_message(chat_id=update.message.chat_id, text="MITÄ??", disable_notification=True)
 
 
 if __name__ == '__main__':
