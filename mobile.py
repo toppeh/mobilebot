@@ -418,9 +418,11 @@ class TelegramBot:
     @staticmethod
     def huuto(bot, update):
         caps = update.message.text.upper()
-        if caps == update.message.text and random.randint(1,5) < 2:
+        rng = random.randint(1,10)
+        if caps == update.message.text and rng == 1:
             bot.send_message(chat_id=update.message.chat_id, text="MITÄ??", disable_notification=True)
-
+        elif caps == update.message.text and rng == 2:
+            bot.send_message(chat_id=update.message.chat_id, text="EIKU OLIN NUKKUMASSA", disable_notification=True)
 
 if __name__ == '__main__':
     TelegramBot()
