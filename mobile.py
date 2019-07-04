@@ -24,6 +24,10 @@ class TelegramBot:
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
+        # TODO: Tee textHandler niminen funktio mikä on sama kuin commandsHandler mutta tekstille
+        # TODO: Ota voc_add pois huuto():sta :DDD
+        # TODO: Tee filtterit niin, että gifit ja kuvat kasvattaa self.voc_msg:eä
+
         dispatcher.job_queue.run_repeating(self.voc_check, interval=60, first=5)
 
         self.commands = {'wabu': self.wabu,
@@ -44,7 +48,8 @@ class TelegramBot:
                          }
 
         self.users = {}  # user_id : unix timestamp
-        self.vocq = list()
+        self.voc_cmd = list()
+        self.voc_msg = list()
         self.create_tables()
 
         updater.start_polling()
@@ -130,7 +135,8 @@ class TelegramBot:
             else:
                 if random.randint(1,5) < 2:
                     bot.send_message(chat_id=update.message.chat_id, text="/" + command)
-        self.vocq.append(time())
+        self.voc_add(bot, update)
+
 
     @staticmethod
     def commandParser(msg):
@@ -293,18 +299,46 @@ class TelegramBot:
         bot.unBanChatMember(chat_id=job.context[0], user_id=job.context[1])
 
     def voc(self, bot, update):
-        if len(self.vocq) > 2:
+        if self.voc_calc():
             bot.send_message(chat_id=update.message.chat_id, text="Value of content: Laskussa")
         else:
             bot.send_message(chat_id=update.message.chat_id, text="Value of content: Nousussa")
 
     def voc_check(self, bot, job):
         now = time()
-        while len(self.vocq) > 0:
-            if now - self.vocq[0] > 3600:
-                self.vocq.pop(0)
+        while len(self.voc_cmd) > 0:
+            if now - self.voc_cmd[0] > 7200:
+                self.voc_cmd.pop(0)
+            else:
+                break
+        while len(self.voc_msg) > 0:
+            if now - self.voc_msg[0] > 7200:
+                self.voc_msg.pop(0)
             else:
                 return
+
+    def voc_add(self, bot, update):
+        if len(update.message.entities) == 0:
+            self.voc_msg.append(time())
+        for i in update.message.entities:
+            if i.type == 'bot_command':
+                self.voc_cmd.append(time())
+            else:
+                self.voc_msg.append(time())
+
+    def voc_calc(self):
+        now = time()
+        cmds = 0
+        for i in self.voc_cmd:
+            if now - i < 900:
+                cmds += 4
+            elif 900 < now - i < 1800:
+                cmds += 2
+            else:
+                cmds += 1
+        msgs = 2 * len(self.voc_msg)
+        # Minus 4 so that we dont count the /voc
+        return cmds - 4 > msgs
 
     @staticmethod
     def cocktail(bot, update):
@@ -415,14 +449,15 @@ class TelegramBot:
 
         bot.send_message(chat_id=update.message.chat_id, text=msg)
 
-    @staticmethod
-    def huuto(bot, update):
+    def huuto(self, bot, update):
         caps = update.message.text.upper()
         rng = random.randint(1,10)
         if caps == update.message.text and rng == 1:
             bot.send_message(chat_id=update.message.chat_id, text="MITÄ??", disable_notification=True)
         elif caps == update.message.text and rng == 2:
             bot.send_message(chat_id=update.message.chat_id, text="EIKU OLIN NUKKUMASSA", disable_notification=True)
+        self.voc_add(bot, update)
+
 
 if __name__ == '__main__':
     TelegramBot()
