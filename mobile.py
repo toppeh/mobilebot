@@ -13,8 +13,8 @@ from weather import WeatherGod
 
 class TelegramBot:
     def __init__(self):
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
-                                   '%(message)s', level=logging.INFO)
+        logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
+                                   '%(message)s', filemode='w', level=logging.WARNING)
 
         updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
@@ -48,6 +48,7 @@ class TelegramBot:
 
         updater.start_polling()
         updater.idle()
+        logging.info('Botti käynnistetty')
 
     @staticmethod
     def wabu(bot, update):
