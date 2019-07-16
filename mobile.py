@@ -16,7 +16,7 @@ class TelegramBot:
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', filemode='w', level=logging.WARNING)
 
-        updater = Updater(token=config.TOKEN)
+        updater = Updater(token=config.TOKEN_KB)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
@@ -343,61 +343,6 @@ class TelegramBot:
 
     @staticmethod
     def cocktail(bot, update):
-
-        spirits = (
-            'Jaloviinaa*',
-            'Jaloviinaa**',
-            'Jaloviinaa***',
-            'Vergiä',
-            'vodkaa',
-            'tequilaa',
-            'giniä',
-            'Bacardia',
-            'martinia',
-            'absinttia',
-            'punaviiniä',
-            'valkoviiniä',
-            'Jägermeisteria',
-            'viskiä',
-            'salmiakkikossua',
-            'rommia',
-            'konjakkia',
-            'Baileys',
-            'Gambinaa',
-            'Carilloa',
-            'Valdemaria',
-            '???'
-        )
-
-        mixers = (
-            'olutta',
-            'kiljua',
-            'glögiä',
-            'vettä',
-            'Coca-Colaa',
-            'energiajuomaa',
-            'lonkeroa',
-            'Spriteä',
-            'maitoa',
-            'kahvia',
-            'kuohuviiniä',
-            'shamppanjaa',
-            'pontikkaa',
-            'simaa',
-            'sangriaa',
-            'tonic-vettä',
-            'siideriä',
-            'roséviiniä',
-            'bensaa',
-            'kirsikkamehua',
-            'ananasmehua',
-            'appelsiinimehua',
-            'omenamehua',
-            'mitä tahansa',
-            'piimää',
-            'Muumi-limpparia',
-            'extra virgin -oliiviöljyä'
-        )
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         sql = '''SELECT * FROM adjektiivit ORDER BY RANDOM() LIMIT 1'''
@@ -423,11 +368,11 @@ class TelegramBot:
         used = []
 
         for i in range(floor, 3):
-            index = random.randint(0, len(spirits) - 1)
+            index = random.randint(0, len(config.SPIRITS) - 1)
             while index in used:
-                index = random.randint(0, len(spirits) - 1)
+                index = random.randint(0, len(config.SPIRITS) - 1)
             used.append(index)
-            rnd = spirits[index]
+            rnd = config.SPIRITS[index]
             vol = str(random.randrange(2, 8, 2))
             msg += "-" + vol + " " + "cl " + rnd + "\n"
 
@@ -440,11 +385,11 @@ class TelegramBot:
             floor += 1
 
         for i in range(random.randint(floor, 3)):
-            index = random.randint(0, len(spirits) - 1)
+            index = random.randint(0, len(config.SPIRITS) - 1)
             while index in used:
-                index = random.randint(0, len(spirits) - 1)
+                index = random.randint(0, len(config.SPIRITS) - 1)
             used.append(index)
-            rnd = mixers[index]
+            rnd = config.MIXERS[index]
             vol = str(random.randrange(5, 20, 5))
             msg += "-" + vol + " " + "cl " + rnd + "\n"
 

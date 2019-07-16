@@ -13,3 +13,6 @@ mobile.db
 .gitignore
 bin/
 lib/
+*.log
+.mobile.log.swp
+
