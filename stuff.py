@@ -5,5 +5,3 @@ mixers = ('olutta', 'kiljua', 'glögiä', 'vettä', 'Coca-Colaa', 'energiajuomaa
           'kahvia', 'kuohuviiniä', 'shamppanjaa', 'pontikkaa', 'simaa', 'sangriaa', 'tonic-vettä', 'siideriä',
           'roséviiniä', 'bensaa', 'kirsikkamehua', 'ananasmehua', 'appelsiinimehua', 'omenamehua', 'mitä tahansa',
           'piimää', 'Muumi-limpparia', 'extra virgin -oliiviöljyä')
-
-members = []
