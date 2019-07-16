@@ -5,6 +5,7 @@ import sqlite3
 
 from datetime import date, timedelta, datetime
 import config
+import stuff
 from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
 import random
 from time import time
@@ -40,10 +41,11 @@ class TelegramBot:
                          'viisaus': self.viisaus,
                          'saa': self.weather,
                          'sää': self.weather,
-                         "kuka": self.kuka,
-                         "value_of_content": self.voc,
-                         "voc": self.voc,
-                         "cocktail": self.cocktail
+                         'kuka': self.kuka,
+                         'value_of_content': self.voc,
+                         'voc': self.voc,
+                         'cocktail': self.cocktail,
+                         'episode_ix': self.episode_ix
 
                          }
 
@@ -69,6 +71,14 @@ class TelegramBot:
                          text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja {seconds} '
                          f'sekuntia', disable_notification=True)
 
+
+    @staticmethod
+    def episode_ix(bot, update):
+        wabu = datetime(2019, 12, 20)
+        tanaan = datetime.now()
+        erotus = wabu - tanaan
+        bot.send_message(chat_id=update.message.chat_id,
+                         text=f'Ensi-iltaan on {erotus.days} päivää.', disable_notification=True)
 
     @staticmethod
     def kiitos(bot, update):
@@ -343,6 +353,7 @@ class TelegramBot:
 
     @staticmethod
     def cocktail(bot, update):
+
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         sql = '''SELECT * FROM adjektiivit ORDER BY RANDOM() LIMIT 1'''
@@ -367,12 +378,12 @@ class TelegramBot:
         # generate spirit(s)
         used = []
 
-        for i in range(floor, 3):
-            index = random.randint(0, len(config.SPIRITS) - 1)
+        for i in range(random.randint(0, 3) * floor):
+            index = random.randint(0, len(stuff.spirits) - 1)
             while index in used:
-                index = random.randint(0, len(config.SPIRITS) - 1)
+                index = random.randint(0, len(stuff.spirit) - 1)
             used.append(index)
-            rnd = config.SPIRITS[index]
+            rnd = stuff.spirit[index]
             vol = str(random.randrange(2, 8, 2))
             msg += "-" + vol + " " + "cl " + rnd + "\n"
 
@@ -382,14 +393,14 @@ class TelegramBot:
         if floor == 0:
             # in case of no spirits, lift the floor to 1
             # so recipe contains at least one mixer
-            floor += 1
+            floor = 1
 
         for i in range(random.randint(floor, 3)):
-            index = random.randint(0, len(config.SPIRITS) - 1)
+            index = random.randint(0, len(stuff.spirit) - 1)
             while index in used:
-                index = random.randint(0, len(config.SPIRITS) - 1)
+                index = random.randint(0, len(stuff.spirit) - 1)
             used.append(index)
-            rnd = config.MIXERS[index]
+            rnd = stuff.mixers[index]
             vol = str(random.randrange(5, 20, 5))
             msg += "-" + vol + " " + "cl " + rnd + "\n"
 
