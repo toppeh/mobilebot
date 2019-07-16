@@ -15,4 +15,4 @@ bin/
 lib/
 *.log
 .mobile.log.swp
-
+cfg.py
