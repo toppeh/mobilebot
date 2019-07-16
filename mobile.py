@@ -40,10 +40,11 @@ class TelegramBot:
                          'viisaus': self.viisaus,
                          'saa': self.weather,
                          'sää': self.weather,
-                         "kuka": self.kuka,
-                         "value_of_content": self.voc,
-                         "voc": self.voc,
-                         "cocktail": self.cocktail
+                         'kuka': self.kuka,
+                         'value_of_content': self.voc,
+                         'voc': self.voc,
+                         'cocktail': self.cocktail,
+                         'episode_ix': self.episode_ix
 
                          }
 
@@ -69,6 +70,14 @@ class TelegramBot:
                          text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja {seconds} '
                          f'sekuntia', disable_notification=True)
 
+
+    @staticmethod
+    def episode_ix(bot, update):
+        wabu = datetime(2019, 12, 20)
+        tanaan = datetime.now()
+        erotus = wabu - tanaan
+        bot.send_message(chat_id=update.message.chat_id,
+                         text=f'Ensi-iltaan on {erotus.days} päivää.', disable_notification=True)
 
     @staticmethod
     def kiitos(bot, update):
@@ -366,15 +375,18 @@ class TelegramBot:
             'Gambinaa',
             'Carilloa',
             'Valdemaria',
-            '???'
+            'Johnnie Walker Red Label',
+            'Johnnie Walker Blue Label'
         )
 
         mixers = (
             'olutta',
             'kiljua',
+            'skiljua',
             'glögiä',
             'vettä',
             'Coca-Colaa',
+            'Pepsi-Max',
             'energiajuomaa',
             'lonkeroa',
             'Spriteä',
@@ -393,11 +405,13 @@ class TelegramBot:
             'ananasmehua',
             'appelsiinimehua',
             'omenamehua',
+            'tomaattimehua',
             'mitä tahansa',
             'piimää',
             'Muumi-limpparia',
             'extra virgin -oliiviöljyä'
         )
+
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         sql = '''SELECT * FROM adjektiivit ORDER BY RANDOM() LIMIT 1'''
@@ -422,7 +436,7 @@ class TelegramBot:
         # generate spirit(s)
         used = []
 
-        for i in range(floor, 3):
+        for i in range(random.randint(0, 3) * floor):
             index = random.randint(0, len(spirits) - 1)
             while index in used:
                 index = random.randint(0, len(spirits) - 1)
@@ -437,7 +451,7 @@ class TelegramBot:
         if floor == 0:
             # in case of no spirits, lift the floor to 1
             # so recipe contains at least one mixer
-            floor += 1
+            floor = 1
 
         for i in range(random.randint(floor, 3)):
             index = random.randint(0, len(spirits) - 1)
