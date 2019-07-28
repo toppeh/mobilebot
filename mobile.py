@@ -5,6 +5,7 @@ import sqlite3
 
 from datetime import date, timedelta, datetime
 import config
+import stuff
 from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
 import random
 from time import time
@@ -13,8 +14,8 @@ from weather import WeatherGod
 
 class TelegramBot:
     def __init__(self):
-        logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - '
-                                   '%(message)s', level=logging.INFO)
+        logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
+                                   '%(message)s', filemode='w', level=logging.WARNING)
 
         updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
@@ -40,10 +41,11 @@ class TelegramBot:
                          'viisaus': self.viisaus,
                          'saa': self.weather,
                          'sää': self.weather,
-                         "kuka": self.kuka,
-                         "value_of_content": self.voc,
-                         "voc": self.voc,
-                         "cocktail": self.cocktail
+                         'kuka': self.kuka,
+                         'value_of_content': self.voc,
+                         'voc': self.voc,
+                         'cocktail': self.cocktail,
+                         'episode_ix': self.episode_ix
 
                          }
 
@@ -54,6 +56,7 @@ class TelegramBot:
 
         updater.start_polling()
         updater.idle()
+        logging.info('Botti käynnistetty')
 
     @staticmethod
     def wabu(bot, update):
@@ -68,6 +71,14 @@ class TelegramBot:
                          text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja {seconds} '
                          f'sekuntia', disable_notification=True)
 
+
+    @staticmethod
+    def episode_ix(bot, update):
+        wabu = datetime(2019, 12, 20)
+        tanaan = datetime.now()
+        erotus = wabu - tanaan
+        bot.send_message(chat_id=update.message.chat_id,
+                         text=f'Ensi-iltaan on {erotus.days} päivää.', disable_notification=True)
 
     @staticmethod
     def kiitos(bot, update):
@@ -343,60 +354,6 @@ class TelegramBot:
     @staticmethod
     def cocktail(bot, update):
 
-        spirits = (
-            'Jaloviinaa*',
-            'Jaloviinaa**',
-            'Jaloviinaa***',
-            'Vergiä',
-            'vodkaa',
-            'tequilaa',
-            'giniä',
-            'Bacardia',
-            'martinia',
-            'absinttia',
-            'punaviiniä',
-            'valkoviiniä',
-            'Jägermeisteria',
-            'viskiä',
-            'salmiakkikossua',
-            'rommia',
-            'konjakkia',
-            'Baileys',
-            'Gambinaa',
-            'Carilloa',
-            'Valdemaria',
-            '???'
-        )
-
-        mixers = (
-            'olutta',
-            'kiljua',
-            'glögiä',
-            'vettä',
-            'Coca-Colaa',
-            'energiajuomaa',
-            'lonkeroa',
-            'Spriteä',
-            'maitoa',
-            'kahvia',
-            'kuohuviiniä',
-            'shamppanjaa',
-            'pontikkaa',
-            'simaa',
-            'sangriaa',
-            'tonic-vettä',
-            'siideriä',
-            'roséviiniä',
-            'bensaa',
-            'kirsikkamehua',
-            'ananasmehua',
-            'appelsiinimehua',
-            'omenamehua',
-            'mitä tahansa',
-            'piimää',
-            'Muumi-limpparia',
-            'extra virgin -oliiviöljyä'
-        )
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         sql = '''SELECT * FROM adjektiivit ORDER BY RANDOM() LIMIT 1'''
@@ -421,12 +378,12 @@ class TelegramBot:
         # generate spirit(s)
         used = []
 
-        for i in range(floor, 3):
-            index = random.randint(0, len(spirits) - 1)
+        for i in range(random.randint(0, 3) * floor):
+            index = random.randint(0, len(stuff.spirits) - 1)
             while index in used:
-                index = random.randint(0, len(spirits) - 1)
+                index = random.randint(0, len(stuff.spirit) - 1)
             used.append(index)
-            rnd = spirits[index]
+            rnd = stuff.spirit[index]
             vol = str(random.randrange(2, 8, 2))
             msg += "-" + vol + " " + "cl " + rnd + "\n"
 
@@ -436,25 +393,24 @@ class TelegramBot:
         if floor == 0:
             # in case of no spirits, lift the floor to 1
             # so recipe contains at least one mixer
-            floor += 1
+            floor = 1
 
         for i in range(random.randint(floor, 3)):
-            index = random.randint(0, len(spirits) - 1)
+            index = random.randint(0, len(stuff.spirit) - 1)
             while index in used:
-                index = random.randint(0, len(spirits) - 1)
+                index = random.randint(0, len(stuff.spirit) - 1)
             used.append(index)
-            rnd = mixers[index]
+            rnd = stuff.mixers[index]
             vol = str(random.randrange(5, 20, 5))
             msg += "-" + vol + " " + "cl " + rnd + "\n"
 
         bot.send_message(chat_id=update.message.chat_id, text=msg)
 
     def huuto(self, bot, update):
-        caps = update.message.text.upper()
         rng = random.randint(1,10)
-        if caps == update.message.text and rng == 1:
+        if update.message.text.isupper() and rng == 1:
             bot.send_message(chat_id=update.message.chat_id, text="MITÄ??", disable_notification=True)
-        elif caps == update.message.text and rng == 2:
+        elif update.message.text.isupper() and rng == 2:
             bot.send_message(chat_id=update.message.chat_id, text="EIKU OLIN NUKKUMASSA", disable_notification=True)
         self.voc_add(bot, update)
 
