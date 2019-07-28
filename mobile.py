@@ -17,7 +17,7 @@ class TelegramBot:
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', filemode='w', level=logging.WARNING)
 
-        updater = Updater(token=config.TOKEN_KB)
+        updater = Updater(token=config.TOKEN)
         dispatcher = updater.dispatcher
 
         dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
@@ -407,11 +407,10 @@ class TelegramBot:
         bot.send_message(chat_id=update.message.chat_id, text=msg)
 
     def huuto(self, bot, update):
-        caps = update.message.text.upper()
         rng = random.randint(1,10)
-        if caps == update.message.text and rng == 1:
+        if update.message.text.isupper() and rng == 1:
             bot.send_message(chat_id=update.message.chat_id, text="MITÄ??", disable_notification=True)
-        elif caps == update.message.text and rng == 2:
+        elif update.message.text.isupper() and rng == 2:
             bot.send_message(chat_id=update.message.chat_id, text="EIKU OLIN NUKKUMASSA", disable_notification=True)
         self.voc_add(bot, update)
 
