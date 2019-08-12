@@ -183,26 +183,38 @@ class TelegramBot:
         text = update.message.text
         first_space = 9
         if text[first_space] != ' ':
+            bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
+                                                                  " <nimi> <sitaatti>)")
             return False
+        # try to find the end of the name
         try:
             second_space = text.find(' ', first_space + 1)
         except IndexError:
             bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
-                                                                  " <nimi> <sitaatti)")
+                                                                  " <nimi> <sitaatti>)")
             return
 
         if second_space != -1:
-            quote = (text[10:second_space].lower(), text[second_space + 1:])
+            temp = (text[10:second_space].lower(), text[second_space + 1:], update.message.chat_id)
+            quote = (datetime.now().strftime("%Y-%m-%d %H:%M:%S"),text[10:second_space].lower(),
+                     text[second_space + 1:], update.message.from_user.username, update.message.chat_id)
             conn = sqlite3.connect(config.DB_FILE)
             cur = conn.cursor()
-            sql = "INSERT INTO quotes VALUES (?,?)"
-            cur.execute(sql, quote)
+            sql_select = "SELECT * FROM quotes WHERE quotee=? AND quote=? AND groupID=?"
+            cur.execute(sql_select, temp)
+            result = cur.fetchall()
+            if len(result) != 0:
+                bot.send_message(chat_id=update.message.chat_id, text="Toi on jo niin kuultu...",
+                                 disable_notification=True)
+                return
+            sql_insert = "INSERT INTO quotes VALUES (?,?,?,?,?)"
+            cur.execute(sql_insert, quote)
             conn.commit()
             conn.close()
             bot.send_message(chat_id=update.message.chat_id, text="Sitaatti suhahti")
         else:
             bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
-                                                                  " <nimi> <sitaatti)")
+                                                                  " <nimi> <sitaatti>)")
         if update.message.chat_id != config.MOBILE_ID:
             bot.send_message(chat_id=config.MOBILE_ID, text=f'@{update.message.from_user.username} lisäsi sitaatin jossain muualla kuin täällä o.O')
 
@@ -211,17 +223,20 @@ class TelegramBot:
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         if space == -1:
-            c.execute("SELECT * FROM quotes ORDER BY RANDOM() LIMIT 1")
+            c.execute("SELECT * FROM quotes WHERE groupID=? ORDER BY RANDOM() LIMIT 1", (update.message.chat_id,))
             quotes = c.fetchall()
+            if len(quotes) == 0:
+                bot.send_message(chat_id=update.message.chat_id, text='Yhtään sitaattia ei ole lisätty.')
 
         else:
             name = update.message.text[space + 1 :]
-            c.execute("SELECT * FROM quotes WHERE name=? ORDER BY RANDOM() LIMIT 1", (name.lower(),))
+            c.execute("SELECT * FROM quotes WHERE name=? AND groupID=? ORDER BY RANDOM() LIMIT 1", (name.lower(),
+                                                                                                    update.message.chat_id))
             quotes = c.fetchall()
             if len(quotes) == 0:
                 bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
                 return
-        bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][1]}" -{quotes[0][0].capitalize()}')
+        bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][1]}" -{quotes[0][2].capitalize()}')
 
     def viisaus(self, bot, update):
         conn = sqlite3.connect(config.DB_FILE)
@@ -276,11 +291,19 @@ class TelegramBot:
     def create_tables():
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS pinned (date text, name text, text text)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS quotes (name text, quote text unique)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS sananlaskut (teksti text)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS adjektiivit (adj text)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS substantiivit (sub text)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS pinned ("date" text, "name" text, "text" text)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS sananlaskut ("teksti" text)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS adjektiivit ("adj" text)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS quotes (
+           "date" TEXT DEFAULT CURRENT_TIMESTAMP,
+           "quotee" TEXT,
+           "quote" TEXT,
+           "adder" TEXT,
+           "groupID" TEXT,
+           PRIMARY KEY(quote, groupID)
+           )
+           ''')
+
         conn.close()
 
     @staticmethod
