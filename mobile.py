@@ -236,7 +236,7 @@ class TelegramBot:
             if len(quotes) == 0:
                 bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
                 return
-        bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][1]}" -{quotes[0][2].capitalize()}')
+        bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][2]}" -{quotes[0][1].capitalize()}')
 
     def viisaus(self, bot, update):
         conn = sqlite3.connect(config.DB_FILE)
