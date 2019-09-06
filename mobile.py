@@ -299,8 +299,8 @@ class TelegramBot:
            "quotee" TEXT,
            "quote" TEXT,
            "adder" TEXT,
-           "groupID" TEXT,
-           PRIMARY KEY(quote, groupID)
+           "groupID" INT,
+           PRIMARY KEY(quotee, quote, groupID)
            )
            ''')
 
