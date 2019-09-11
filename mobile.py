@@ -230,7 +230,7 @@ class TelegramBot:
 
         else:
             name = update.message.text[space + 1 :]
-            c.execute("SELECT * FROM quotes WHERE name=? AND groupID=? ORDER BY RANDOM() LIMIT 1", (name.lower(),
+            c.execute("""SELECT * FROM quotes WHERE quotee=? AND groupID=? ORDER BY RANDOM() LIMIT 1""", (name.lower(),
                                                                                                     update.message.chat_id))
             quotes = c.fetchall()
             if len(quotes) == 0:
