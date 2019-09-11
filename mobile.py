@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import logging
 import sqlite3
 
@@ -429,11 +430,12 @@ class TelegramBot:
         bot.send_message(chat_id=update.message.chat_id, text=msg)
 
     def huuto(self, bot, update):
-        rng = random.randint(1,10)
-        if update.message.text.isupper() and rng == 1:
-            bot.send_message(chat_id=update.message.chat_id, text="MITÄ??", disable_notification=True)
-        elif update.message.text.isupper() and rng == 2:
-            bot.send_message(chat_id=update.message.chat_id, text="EIKU OLIN NUKKUMASSA", disable_notification=True)
+        rng = random.randint(0,99)
+        
+        if (not update.message.text.isupper() and update.message.text.isalpha()) or rng >= len(stuff.message):
+            return
+
+        bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng] , disable_notification=True)
         self.voc_add(bot, update)
 
 
