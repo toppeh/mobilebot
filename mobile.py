@@ -143,9 +143,6 @@ class TelegramBot:
             if command in self.commands:
                 if self.cooldownFilter(update):
                     self.commands[command](bot, update)
-            else:
-                if random.randint(1,5) < 2:
-                    bot.send_message(chat_id=update.message.chat_id, text="/" + command)
         self.voc_add(bot, update)
 
 
