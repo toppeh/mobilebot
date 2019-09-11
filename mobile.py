@@ -404,9 +404,9 @@ class TelegramBot:
         for i in range(random.randint(0, 3) * floor):
             index = random.randint(0, len(stuff.spirits) - 1)
             while index in used:
-                index = random.randint(0, len(stuff.spirit) - 1)
+                index = random.randint(0, len(stuff.spirits) - 1)
             used.append(index)
-            rnd = stuff.spirit[index]
+            rnd = stuff.spirits[index]
             vol = str(random.randrange(2, 8, 2))
             msg += "-" + vol + " " + "cl " + rnd + "\n"
 
@@ -419,9 +419,9 @@ class TelegramBot:
             floor = 1
 
         for i in range(random.randint(floor, 3)):
-            index = random.randint(0, len(stuff.spirit) - 1)
+            index = random.randint(0, len(stuff.spirits) - 1)
             while index in used:
-                index = random.randint(0, len(stuff.spirit) - 1)
+                index = random.randint(0, len(stuff.spirits) - 1)
             used.append(index)
             rnd = stuff.mixers[index]
             vol = str(random.randrange(5, 20, 5))
