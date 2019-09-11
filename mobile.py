@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import re
+import regex
 import logging
 import sqlite3
 
@@ -431,8 +431,8 @@ class TelegramBot:
 
     def huuto(self, bot, update):
         rng = random.randint(0,99)
-        
-        if (not update.message.text.isupper() and update.message.text.isalpha()) or rng >= len(stuff.message):
+        r = regex.compile(r"^(?![:;])[[:upper:]\W\d]+$")
+        if rng >= len(stuff.message) or not r.match(update.message.text):
             return
 
         bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng] , disable_notification=True)
