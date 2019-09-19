@@ -429,7 +429,7 @@ class TelegramBot:
 
     def huuto(self, bot, update):
         rng = random.randint(0,99)
-        r = regex.compile(r"^(?![:;])[[:upper:]\W\d]+$")
+        r = regex.compile(r"^(?![\W])[^[:lower:]]+$")
         if rng >= len(stuff.message) or not r.match(update.message.text):
             return
 
