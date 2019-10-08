@@ -18,7 +18,7 @@ class TelegramBot:
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
                                    '%(message)s', filemode='w', level=logging.WARNING)
 
-        updater = Updater(token=config.TOKEN)
+        updater = Updater(token=config.TOKEN_KB)
         dispatcher = updater.dispatcher
 
         #dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
@@ -248,17 +248,6 @@ class TelegramBot:
     @staticmethod
     def kuka(bot, update):
         index = random.randint(0, len(config.MEMBERS)-1)
-        if update.message.reply_to_message is not None:
-            bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
-            return
-        question = update.message.text.find(" ")
-        if question == -1:
-            bot.send_message(chat_id=update.message.chat_id, text="Eipä ollu kysymys...")
-            return
-        elif update.message.text[-1] != "?":
-            bot.send_message(chat_id=update.message.chat_id, text="Kysymysmuotoisen virkkeen tulee"
-                                                                  "päättyä kysymystä ilmaisevaan välimerkkiin.")
-            return
         bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
 
     @staticmethod
