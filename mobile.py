@@ -144,8 +144,6 @@ class TelegramBot:
             if command in self.commands:
                 if self.cooldownFilter(update):
                     self.commands[command](bot, update)
-            else:
-                bot.send_message(chat_id=update.message.chat_id, text="/" + command)
         self.voc_add(bot, update)
 
 
@@ -420,7 +418,7 @@ class TelegramBot:
 
     def huuto(self, bot, update):
         rng = random.randint(0,99)
-        r = regex.compile(r"^(?![:;])[[:upper:]\W\d]+$")
+        r = regex.compile(r"^(?![\W])[^[:lower:]]+$")
         if rng >= len(stuff.message) or not r.match(update.message.text):
             return
 
