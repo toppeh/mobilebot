@@ -4,7 +4,7 @@ import regex
 import logging
 import sqlite3
 
-from datetime import date, timedelta, datetime
+from datetime import timedelta, datetime
 import config
 import stuff
 from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
@@ -17,7 +17,7 @@ from weather import WeatherGod
 class TelegramBot:
     def __init__(self):
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
-                                   '%(message)s', filemode='w', level=logging.WARNING)
+                            '%(message)s', filemode='w', level=logging.WARNING)
 
         updater = Updater(token=config.TOKEN_KB)
         dispatcher = updater.dispatcher
@@ -35,7 +35,7 @@ class TelegramBot:
         self.commands = {'wabu': self.wabu,
                          'kiitos': self.kiitos,
                          'sekseli': self.sekseli,
-                         'poyta': self.pöytä,
+                         'poyta': self.poyta,
                          'insv': self.insv,
                          'quoteadd': self.quoteadd,
                          'quote': self.quote,
@@ -72,7 +72,6 @@ class TelegramBot:
                          text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja {seconds} '
                          f'sekuntia', disable_notification=True)
 
-
     @staticmethod
     def episode_ix(bot, update):
         wabu = datetime(2019, 12, 20)
@@ -84,7 +83,8 @@ class TelegramBot:
     @staticmethod
     def kiitos(bot, update):
         if update.message.reply_to_message is not None:
-            bot.send_message(chat_id=update.message.chat_id, text=f'Kiitos {update.message.reply_to_message.from_user.first_name}!',
+            bot.send_message(chat_id=update.message.chat_id,
+                             text=f'Kiitos {update.message.reply_to_message.from_user.first_name}!',
                              disable_notifications=True)
         else:
             bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori!', disable_notification=True)
@@ -95,7 +95,7 @@ class TelegramBot:
         bot.send_message(chat_id=update.message.chat_id, text=text, disable_notification=True)
 
     @staticmethod
-    def pöytä(bot, update):
+    def poyta(bot, update):
         bot.send_animation(chat_id=update.message.chat_id, animation=config.desk, disable_notification=True)
 
     @staticmethod
@@ -104,7 +104,7 @@ class TelegramBot:
 
     @staticmethod
     def aikaTarkistus(viesti_aika):
-    # Makes sure that commands older than 30 seconds won't go through
+        # Makes sure that commands older than 30 seconds won't go through
         return datetime.today() - viesti_aika < timedelta(0, 30)
 
     def cooldownFilter(self, update):
@@ -144,7 +144,6 @@ class TelegramBot:
                     self.commands[command](bot, update)
         self.voc_add(bot, update)
 
-
     @staticmethod
     def commandParser(msg):
         commands = list()
@@ -161,7 +160,8 @@ class TelegramBot:
             commands.append(msg.text[is_desk:is_desk+5])
         return commands
 
-    def pinned(self, bot, update):
+    @staticmethod
+    def pinned(bot, update):
         try:
             if update.message.pinned_message:
                 if update.message.chat_id == config.MOBILE_ID:
@@ -177,7 +177,8 @@ class TelegramBot:
         except KeyError:
             return False
 
-    def quoteadd(self, bot, update):
+    @staticmethod
+    def quoteadd(bot, update):
         text = update.message.text
         first_space = 9
         if text[first_space] != ' ':
@@ -194,7 +195,7 @@ class TelegramBot:
 
         if second_space != -1:
             temp = (text[10:second_space].lower(), text[second_space + 1:], update.message.chat_id)
-            quote = (datetime.now().strftime("%Y-%m-%d %H:%M:%S"),text[10:second_space].lower(),
+            quote = (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), text[10:second_space].lower(),
                      text[second_space + 1:], update.message.from_user.username, update.message.chat_id)
             conn = sqlite3.connect(config.DB_FILE)
             cur = conn.cursor()
@@ -214,9 +215,11 @@ class TelegramBot:
             bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
                                                                   " <nimi> <sitaatti>)")
         if update.message.chat_id != config.MOBILE_ID:
-            bot.send_message(chat_id=config.MOBILE_ID, text=f'@{update.message.from_user.username} lisäsi sitaatin jossain muualla kuin täällä o.O')
+            bot.send_message(chat_id=config.MOBILE_ID, text=f'@{update.message.from_user.username}'
+                                                            f' lisäsi sitaatin jossain muualla kuin täällä o.O')
 
-    def quote(self, bot, update):
+    @staticmethod
+    def quote(bot, update):
         space = update.message.text.find(' ')
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
@@ -227,16 +230,18 @@ class TelegramBot:
                 bot.send_message(chat_id=update.message.chat_id, text='Yhtään sitaattia ei ole lisätty.')
 
         else:
-            name = update.message.text[space + 1 :]
-            c.execute("""SELECT * FROM quotes WHERE quotee=? AND groupID=? ORDER BY RANDOM() LIMIT 1""", (name.lower(),
-                                                                                                    update.message.chat_id))
+            name = update.message.text[space + 1:]
+            c.execute("""SELECT * FROM quotes WHERE quotee=? AND groupID=? ORDER BY RANDOM() LIMIT 1""",
+                      (name.lower(),
+                       update.message.chat_id))
             quotes = c.fetchall()
             if len(quotes) == 0:
                 bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
                 return
         bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][2]}" -{quotes[0][1].capitalize()}')
 
-    def viisaus(self, bot, update):
+    @staticmethod
+    def viisaus(bot, update):
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         c.execute("SELECT * FROM sananlaskut ORDER BY RANDOM() LIMIT 1")
@@ -247,11 +252,6 @@ class TelegramBot:
     def kuka(bot, update):
         index = random.randint(0, len(config.MEMBERS)-1)
         bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
-
-    @staticmethod
-    def random_select(max):
-        rand_int = random.randint(0, max)
-        return rand_int
 
     @staticmethod
     def create_tables():
@@ -287,7 +287,7 @@ class TelegramBot:
             return
 
     @staticmethod
-    def kick(bot, update,job_queue):
+    def kick(bot, update, job_queue):
         try:
             bot.kickChatMember(update.message.chat.id, update.message.from_user.id)
             job_queue.run_once(TelegramBot.invite, 60, context=[update.message.chat_id, update.message.from_user.id])
@@ -396,12 +396,12 @@ class TelegramBot:
         bot.send_message(chat_id=update.message.chat_id, text=msg)
 
     def huuto(self, bot, update):
-        rng = random.randint(0,99)
+        rng = random.randint(0, 99)
         r = regex.compile(r"^(?![\W])[^[:lower:]]+$")
         if rng >= len(stuff.message) or not r.match(update.message.text):
             return
 
-        bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng] , disable_notification=True)
+        bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng], disable_notification=True)
         self.voc_add(bot, update)
 
 
