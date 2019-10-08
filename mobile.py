@@ -22,7 +22,6 @@ class TelegramBot:
         dispatcher = updater.dispatcher
 
         #dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
-        dispatcher.add_handler(CommandHandler("muistutus", self.lupaus, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
@@ -249,27 +248,6 @@ class TelegramBot:
     def kuka(bot, update):
         index = random.randint(0, len(config.MEMBERS)-1)
         bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
-
-    @staticmethod
-    def lupaus(bot, update, job_queue):
-        # yyyy-mm-dd hh:min
-        text = update.message.text
-        try:
-            dt = datetime.strptime(text[11:25], '%Y-%m-%d %H:%M')
-            diff = dt - datetime.now()
-            if diff.total_seconds() > 0:
-                promise = [update.message.chat_id, update.message.message_id, update.message.from_user.username]
-                job_queue.run_once(TelegramBot.muistutus, diff.total_seconds(), context=promise)
-                update.message.reply_text("Tää muistetaan.")
-            else:
-                bot.send_message(chat_id=update.message.chat_id, text='Toihan on menneisyydessä')
-        except ValueError:
-            bot.send_message(chat_id=update.message.chat_id, text='/muistutus yyyy-(m)m-(d)d hh:mm')
-
-    @staticmethod
-    def muistutus(bot, job):
-        bot.forwardMessage(job.context[0], job.context[0], job.context[1], disable_notification=True)
-        bot.send_message(chat_id=job.context[0], text="@"+job.context[2], disable_notifications=True)
 
     @staticmethod
     def random_select(max):
