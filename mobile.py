@@ -96,13 +96,11 @@ class TelegramBot:
 
     @staticmethod
     def pöytä(bot, update):
-        xd = 'CgADBAADyAQAAgq36FKsK7BL1PNfZQI'
-        bot.send_animation(chat_id=update.message.chat_id, animation=xd, disable_notification=True)
+        bot.send_animation(chat_id=update.message.chat_id, animation=config.desk, disable_notification=True)
 
     @staticmethod
     def insv(bot, update):
-        file_id = "CAADBAADqgADsnJvGjljGk2zOaJJAg"
-        bot.send_sticker(chat_id=update.message.chat_id, sticker=file_id, disable_notification=True)
+        bot.send_sticker(chat_id=update.message.chat_id, sticker=config.insv, disable_notification=True)
 
     @staticmethod
     def aikaTarkistus(viesti_aika):
@@ -111,27 +109,27 @@ class TelegramBot:
 
     def cooldownFilter(self, update):
 
-        cooldown = 1  # time in seconds
+        cordon = 3600  # time in seconds
 
         if not update.message.from_user.id:
             # Some updates are not from any user -- ie when bot is added to a group
             return True
 
-        id = update.message.from_user.id
+        user_id = update.message.from_user.id
 
-        if id not in self.users.keys():
+        if user_id not in self.users.keys():
             # new user, add id to users
-            self.users[id] = time()
+            self.users[user_id] = time()
             return True
 
         else:
             # old user
-            if time() - self.users[id] < cooldown:
+            if time() - self.users[user_id] < cordon:
                 # caught in spam filter
                 return False
             else:
                 # passed the spam filter.
-                self.users[id] = time()
+                self.users[user_id] = time()
                 return True
 
     def commandsHandler(self, bot, update):

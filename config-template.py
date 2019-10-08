@@ -4,3 +4,5 @@ MOBILE_ID = 000000000000 # tg chat id
 DB_FILE = 'mobile.db'
 DARKSKYTOKEN = "darkskytoken"
 MEMBERS = ["name1", "name2"]
+desk = "asd"
+insv = "fgh"
