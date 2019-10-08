@@ -154,8 +154,10 @@ class TelegramBot:
             if i.type == 'bot_command':
                 command = msg.text[i.offset + 1: i.offset + i.length].lower()
                 temp = command.split('@')
-                commands.append(temp[0])
-
+                if len(temp) > 1 and temp[1] == "kiitos_jori_bot":
+                    commands.append(temp[0])
+                elif len(temp) == 1:
+                    commands.append(temp[0])
         is_desk = msg.text.find('pöytä')
         if is_desk != -1:
             commands.append(msg.text[is_desk:is_desk+5])
