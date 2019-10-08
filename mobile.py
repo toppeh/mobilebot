@@ -8,6 +8,7 @@ from datetime import date, timedelta, datetime
 import config
 import stuff
 from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
+from telegram import TelegramError
 import random
 from time import time
 from weather import WeatherGod
@@ -21,7 +22,7 @@ class TelegramBot:
         updater = Updater(token=config.TOKEN_KB)
         dispatcher = updater.dispatcher
 
-        #dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
+        dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
@@ -45,8 +46,8 @@ class TelegramBot:
                          'value_of_content': self.voc,
                          'voc': self.voc,
                          'cocktail': self.cocktail,
-                         'episode_ix': self.episode_ix
-
+                         'episode_ix': self.episode_ix,
+                         'kick': self.kick
                          }
 
         self.users = {}  # user_id : unix timestamp
@@ -292,7 +293,7 @@ class TelegramBot:
         try:
             bot.kickChatMember(update.message.chat.id, update.message.from_user.id)
             job_queue.run_once(TelegramBot.invite, 60, context=[update.message.chat_id, update.message.from_user.id])
-        except:
+        except TelegramError:
             bot.send_message(chat_id=update.message.chat_id, text="Vielä joku päivä...")
 
     @staticmethod
