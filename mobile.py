@@ -91,8 +91,9 @@ class TelegramBot:
 
     @staticmethod
     def sekseli(bot, update):
-        text = 'Akseli sekseli guu nu kaijakka niko toivio sitä r elsa'
-        bot.send_message(chat_id=update.message.chat_id, text=text, disable_notification=True)
+        if update.message.chat_id == config.MOBILE_ID:
+            bot.forward_message(chat_id=update.message.chat_id, from_chat_id=config.MOBILE_ID, message_id=316362,
+                                disable_notification=True)
 
     @staticmethod
     def poyta(bot, update):
@@ -102,13 +103,7 @@ class TelegramBot:
     def insv(bot, update):
         bot.send_sticker(chat_id=update.message.chat_id, sticker=config.insv, disable_notification=True)
 
-    @staticmethod
-    def aikaTarkistus(viesti_aika):
-        # Makes sure that commands older than 30 seconds won't go through
-        return datetime.today() - viesti_aika < timedelta(0, 30)
-
     def cooldownFilter(self, update):
-
         cordon = 3600  # time in seconds
 
         if not update.message.from_user.id:
@@ -133,7 +128,8 @@ class TelegramBot:
                 return True
 
     def commandsHandler(self, bot, update):
-        if not self.aikaTarkistus(update.message.date):
+        # Ignore messages older than 30 seconds
+        if not datetime.today() - update.message.date < timedelta(0, 30):
             return
         if update.message.entities is None:
             return
@@ -146,6 +142,7 @@ class TelegramBot:
 
     @staticmethod
     def commandParser(msg):
+        # Parses commands from the message, changing them to lowercase and removing the slash and bot's name.
         commands = list()
         for i in msg.entities:
             if i.type == 'bot_command':
@@ -157,7 +154,7 @@ class TelegramBot:
                     commands.append(temp[0])
         is_desk = msg.text.find('pöytä')
         if is_desk != -1:
-            commands.append(msg.text[is_desk:is_desk+5])
+            commands.append(msg.text["poyta"])
         return commands
 
     @staticmethod
@@ -274,7 +271,6 @@ class TelegramBot:
 
     @staticmethod
     def weather(bot, update):
-
         try:
             city = update.message.text[5:]
             weather = WeatherGod()
@@ -337,12 +333,11 @@ class TelegramBot:
             else:
                 cmds += 1
         msgs = 2 * len(self.voc_msg)
-        # Minus 4 so that we dont count the /voc
+        # Minus 4 so that we dont count the calling /voc
         return cmds - 4 > msgs
 
     @staticmethod
     def cocktail(bot, update):
-
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         sql = '''SELECT * FROM adjektiivit ORDER BY RANDOM() LIMIT 1'''

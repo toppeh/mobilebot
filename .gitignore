@@ -16,3 +16,6 @@ lib/
 *.log
 .mobile.log.swp
 cfg.py
+backup.db
+backup.sql
+
