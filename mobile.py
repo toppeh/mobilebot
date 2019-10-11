@@ -7,8 +7,9 @@ import sqlite3
 from datetime import timedelta, datetime
 import config
 import stuff
+import leffa
 from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
-from telegram import TelegramError
+from telegram import TelegramError, ReplyKeyboardMarkup, ReplyKeyboardRemove
 import random
 from time import time
 from weather import WeatherGod
@@ -47,17 +48,17 @@ class TelegramBot:
                          'voc': self.voc,
                          'cocktail': self.cocktail,
                          'episode_ix': self.episode_ix,
-                         'kick': self.kick
+                         'kick': self.kick,
+                         'leffa': self.leffa
                          }
-
         self.users = {}  # user_id : unix timestamp
         self.voc_cmd = list()
         self.voc_msg = list()
         self.create_tables()
-
         updater.start_polling()
-        updater.idle()
+       # updater.idle()
         logging.info('Botti käynnistetty')
+
 
     @staticmethod
     def wabu(bot, update):
@@ -105,10 +106,10 @@ class TelegramBot:
 
     def cooldownFilter(self, update):
         cordon = 3600  # time in seconds
-
+        #  cordon = 1  # For testing purposes
         if not update.message.from_user.id:
             # Some updates are not from any user -- ie when bot is added to a group
-            return True
+            return False
 
         user_id = update.message.from_user.id
 
@@ -314,7 +315,7 @@ class TelegramBot:
                 return
 
     def voc_add(self, bot, update):
-        if len(update.message.entities) == 0:
+        if update.message.entities is None:
             self.voc_msg.append(time())
         for i in update.message.entities:
             if i.type == 'bot_command':
@@ -393,11 +394,41 @@ class TelegramBot:
     def huuto(self, bot, update):
         rng = random.randint(0, 99)
         r = regex.compile(r"^(?![\W])[^[:lower:]]+$")
+        self.voc_add(bot, update)
+        self.leffaReply(bot, update)
         if rng >= len(stuff.message) or not r.match(update.message.text):
             return
 
         bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng], disable_notification=True)
-        self.voc_add(bot, update)
+
+    def leffa(self, bot, update):
+        custom_keyboard = leffa.generateKeyboard()
+        reply_markup = ReplyKeyboardMarkup(build_menu(custom_keyboard, n_cols=2))
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="Leffoja",
+                         reply_markup=reply_markup)
+
+    @staticmethod
+    def leffaReply(bot, update):
+        if update.message.reply_to_message is None:
+            return
+        if update.message.reply_to_message.text != "Leffoja":
+            return
+        premiere = leffa.getMovie(update.message.text)
+        reply_markup = ReplyKeyboardRemove()
+        bot.send_message(chat_id=update.message.chat_id, text=f'Ensi-ilta on {premiere}', reply_markup=reply_markup)
+
+
+def build_menu(buttons,
+               n_cols,
+               header_buttons=None,
+               footer_buttons=None):
+    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+    if header_buttons:
+        menu.insert(0, [header_buttons])
+    if footer_buttons:
+        menu.append([footer_buttons])
+    return menu
 
 
 if __name__ == '__main__':
