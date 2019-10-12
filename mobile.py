@@ -51,6 +51,9 @@ class TelegramBot:
                          'kick': self.kick,
                          'leffa': self.leffa
                          }
+
+        self.noCooldown = (self.quoteadd,)
+
         self.users = {}  # user_id : unix timestamp
         self.voc_cmd = list()
         self.voc_msg = list()
@@ -104,7 +107,11 @@ class TelegramBot:
     def insv(bot, update):
         bot.send_sticker(chat_id=update.message.chat_id, sticker=config.insv, disable_notification=True)
 
-    def cooldownFilter(self, update):
+    def cooldownFilter(self, update, command):
+
+        if command in self.noCooldown:
+            return True
+
         cordon = 3600  # time in seconds
         #  cordon = 1  # For testing purposes
         if not update.message.from_user.id:
@@ -137,8 +144,10 @@ class TelegramBot:
         commands = self.commandParser(update.message)
         for command in commands:
             if command in self.commands:
-                if self.cooldownFilter(update):
+                if self.cooldownFilter(update, command):
                     self.commands[command](bot, update)
+
+
         self.voc_add(bot, update)
 
     @staticmethod
