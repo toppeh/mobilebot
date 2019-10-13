@@ -109,8 +109,11 @@ class TelegramBot:
 
     def cooldownFilter(self, update, command):
 
-        if command in self.noCooldown:
-            return True
+        try:
+            if self.commands[command] in self.noCooldown:
+                return True
+        except KeyError:
+            return False
 
         cordon = 3600  # time in seconds
         #  cordon = 1  # For testing purposes
@@ -119,6 +122,7 @@ class TelegramBot:
             return False
 
         user_id = update.message.from_user.id
+        # TODO chat wise filtering
 
         if user_id not in self.users.keys():
             # new user, add id to users
