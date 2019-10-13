@@ -121,22 +121,26 @@ class TelegramBot:
             # Some updates are not from any user -- ie when bot is added to a group
             return False
 
+        chat_id = update.message.chat_id
         user_id = update.message.from_user.id
-        # TODO chat wise filtering
 
-        if user_id not in self.users.keys():
+        if chat_id not in self.users.keys():
+            # new chat, add id
+            self.users[chat_id] = {}
+
+        if user_id not in self.users[chat_id].keys():
             # new user, add id to users
-            self.users[user_id] = time()
+            self.users[chat_id][user_id] = time()
             return True
 
         else:
             # old user
-            if time() - self.users[user_id] < cordon:
+            if time() - self.users[chat_id][user_id] < cordon:
                 # caught in spam filter
                 return False
             else:
                 # passed the spam filter.
-                self.users[user_id] = time()
+                self.users[chat_id][user_id] = time()
                 return True
 
     def commandsHandler(self, bot, update):
