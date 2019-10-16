@@ -37,6 +37,7 @@ class TelegramBot:
                          'kiitos': self.kiitos,
                          'sekseli': self.sekseli,
                          'poyta': self.poyta,
+                         'pöytä': self.poyta,
                          'insv': self.insv,
                          'quoteadd': self.quoteadd,
                          'quote': self.quote,
@@ -52,7 +53,7 @@ class TelegramBot:
                          'leffa': self.leffa
                          }
 
-        self.noCooldown = (self.quoteadd,)
+        self.noCooldown = (self.quoteadd, self.leffa, self.kick)
 
         self.users = {}  # user_id : unix timestamp
         self.voc_cmd = list()
