@@ -37,6 +37,7 @@ class TelegramBot:
                          'kiitos': self.kiitos,
                          'sekseli': self.sekseli,
                          'poyta': self.poyta,
+                         'pöytä': self.poyta,
                          'insv': self.insv,
                          'quoteadd': self.quoteadd,
                          'quote': self.quote,
@@ -52,7 +53,7 @@ class TelegramBot:
                          'leffa': self.leffa
                          }
 
-        self.noCooldown = (self.quoteadd,)
+        self.noCooldown = (self.quoteadd, self.leffa, self.kick)
 
         self.users = {}  # user_id : unix timestamp
         self.voc_cmd = list()
@@ -109,8 +110,11 @@ class TelegramBot:
 
     def cooldownFilter(self, update, command):
 
-        if command in self.noCooldown:
-            return True
+        try:
+            if self.commands[command] in self.noCooldown:
+                return True
+        except KeyError:
+            return False
 
         cordon = 3600  # time in seconds
         #  cordon = 1  # For testing purposes
@@ -118,21 +122,26 @@ class TelegramBot:
             # Some updates are not from any user -- ie when bot is added to a group
             return False
 
+        chat_id = update.message.chat_id
         user_id = update.message.from_user.id
 
-        if user_id not in self.users.keys():
+        if chat_id not in self.users.keys():
+            # new chat, add id
+            self.users[chat_id] = {}
+
+        if user_id not in self.users[chat_id].keys():
             # new user, add id to users
-            self.users[user_id] = time()
+            self.users[chat_id][user_id] = time()
             return True
 
         else:
             # old user
-            if time() - self.users[user_id] < cordon:
+            if time() - self.users[chat_id][user_id] < cordon:
                 # caught in spam filter
                 return False
             else:
                 # passed the spam filter.
-                self.users[user_id] = time()
+                self.users[chat_id][user_id] = time()
                 return True
 
     def commandsHandler(self, bot, update):
