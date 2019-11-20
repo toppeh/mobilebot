@@ -8,8 +8,8 @@ from datetime import timedelta, datetime
 import config
 import stuff
 import leffa
-from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
-from telegram import TelegramError, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram.ext import Updater, MessageHandler, CommandHandler, Filters, PrefixHandler, CallbackContext
+from telegram import TelegramError, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 import random
 from time import time
 from weather import WeatherGod
@@ -20,10 +20,11 @@ class TelegramBot:
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
                             '%(message)s', filemode='w', level=logging.WARNING)
 
-        updater = Updater(token=config.TOKEN_KB)
+        updater = Updater(token=config.TOKEN_KB, use_context=True)
         dispatcher = updater.dispatcher
 
-        dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
+        dispatcher.add_handler(PrefixHandler(['!', '.', '/'], "kick", self.kick, pass_job_queue=True))
+        #dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
         dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
@@ -65,7 +66,7 @@ class TelegramBot:
 
 
     @staticmethod
-    def wabu(bot, update):
+    def wabu(update: Update, context: CallbackContext):
         wabu = datetime(2020, 4, 13, 13)
         tanaan = datetime.now()
         erotus = wabu - tanaan
@@ -73,42 +74,42 @@ class TelegramBot:
         minutes = (erotus.seconds - hours*3600) // 60
         seconds = erotus.seconds - hours * 3600 - minutes * 60
 
-        bot.send_message(chat_id=update.message.chat_id,
+        context.bot.send_message(chat_id=update.message.chat_id,
                          text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja {seconds} '
                          f'sekuntia', disable_notification=True)
 
     @staticmethod
-    def episode_ix(bot, update):
+    def episode_ix(update: Update, context: CallbackContext):
         wabu = datetime(2019, 12, 20)
         tanaan = datetime.now()
         erotus = wabu - tanaan
-        bot.send_message(chat_id=update.message.chat_id,
+        context.bot.send_message(chat_id=update.message.chat_id,
                          text=f'Ensi-iltaan on {erotus.days} päivää.', disable_notification=True)
 
     @staticmethod
-    def kiitos(bot, update):
+    def kiitos(update: Update, context: CallbackContext):
         if update.message.reply_to_message is not None:
-            bot.send_message(chat_id=update.message.chat_id,
+            context.bot.send_message(chat_id=update.message.chat_id,
                              text=f'Kiitos {update.message.reply_to_message.from_user.first_name}!',
                              disable_notifications=True)
         else:
-            bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori!', disable_notification=True)
+            context.bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori!', disable_notification=True)
 
     @staticmethod
-    def sekseli(bot, update):
+    def sekseli(update: Update, context: CallbackContext):
         if update.message.chat_id == config.MOBILE_ID:
-            bot.forward_message(chat_id=update.message.chat_id, from_chat_id=config.MOBILE_ID, message_id=316362,
+            context.bot.forward_message(chat_id=update.message.chat_id, from_chat_id=config.MOBILE_ID, message_id=316362,
                                 disable_notification=True)
 
     @staticmethod
-    def poyta(bot, update):
-        bot.send_animation(chat_id=update.message.chat_id, animation=config.desk, disable_notification=True)
+    def poyta(update: Update, context: CallbackContext):
+        context.bot.send_animation(chat_id=update.message.chat_id, animation=config.desk, disable_notification=True)
 
     @staticmethod
-    def insv(bot, update):
-        bot.send_sticker(chat_id=update.message.chat_id, sticker=config.insv, disable_notification=True)
+    def insv(update: Update, context: CallbackContext):
+        context.bot.send_sticker(chat_id=update.message.chat_id, sticker=config.insv, disable_notification=True)
 
-    def cooldownFilter(self, update, command):
+    def cooldownFilter(self, update: Update, command):
 
         try:
             if self.commands[command] in self.noCooldown:
@@ -144,30 +145,29 @@ class TelegramBot:
                 self.users[chat_id][user_id] = time()
                 return True
 
-    def commandsHandler(self, bot, update):
+    def commandsHandler(self, update: Update, context: CallbackContext):
         # Ignore messages older than 30 seconds
         if not datetime.today() - update.message.date < timedelta(0, 30):
             return
         if update.message.entities is None:
             return
-        commands = self.commandParser(update.message)
+        bot_name = context.bot.get_me().username
+        commands = self.commandParser(update.message, bot_name)
         for command in commands:
             if command in self.commands:
                 if self.cooldownFilter(update, command):
-                    self.commands[command](bot, update)
-
-
-        self.voc_add(bot, update)
+                    self.commands[command](context.bot, update)
+        self.voc_add(update)
 
     @staticmethod
-    def commandParser(msg):
+    def commandParser(msg, bot_name):
         # Parses commands from the message, changing them to lowercase and removing the slash and bot's name.
         commands = list()
         for i in msg.entities:
             if i.type == 'bot_command':
                 command = msg.text[i.offset + 1: i.offset + i.length].lower()
                 temp = command.split('@')
-                if len(temp) > 1 and temp[1] == "kiitos_jori_bot":
+                if len(temp) > 1 and temp[1] == bot_name:
                     commands.append(temp[0])
                 elif len(temp) == 1:
                     commands.append(temp[0])
@@ -177,7 +177,7 @@ class TelegramBot:
         return commands
 
     @staticmethod
-    def pinned(bot, update):
+    def pinned(update: Update, context: CallbackContext):
         try:
             if update.message.pinned_message:
                 if update.message.chat_id == config.MOBILE_ID:
@@ -194,18 +194,18 @@ class TelegramBot:
             return False
 
     @staticmethod
-    def quoteadd(bot, update):
+    def quoteadd(update: Update, context: CallbackContext):
         text = update.message.text
         first_space = 9
         if text[first_space] != ' ':
-            bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
+            context.bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
                                                                   " <nimi> <sitaatti>)")
             return False
         # try to find the end of the name
         try:
             second_space = text.find(' ', first_space + 1)
         except IndexError:
-            bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
+            context.bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
                                                                   " <nimi> <sitaatti>)")
             return
 
@@ -219,23 +219,23 @@ class TelegramBot:
             cur.execute(sql_select, temp)
             result = cur.fetchall()
             if len(result) != 0:
-                bot.send_message(chat_id=update.message.chat_id, text="Toi on jo niin kuultu...",
+                context.bot.send_message(chat_id=update.message.chat_id, text="Toi on jo niin kuultu...",
                                  disable_notification=True)
                 return
             sql_insert = "INSERT INTO quotes VALUES (?,?,?,?,?)"
             cur.execute(sql_insert, quote)
             conn.commit()
             conn.close()
-            bot.send_message(chat_id=update.message.chat_id, text="Sitaatti suhahti")
+            context.bot.send_message(chat_id=update.message.chat_id, text="Sitaatti suhahti")
         else:
-            bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
+            context.bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
                                                                   " <nimi> <sitaatti>)")
         if update.message.chat_id != config.MOBILE_ID:
-            bot.send_message(chat_id=config.MOBILE_ID, text=f'@{update.message.from_user.username}'
+            context.bot.send_message(chat_id=config.MOBILE_ID, text=f'@{update.message.from_user.username}'
                                                             f' lisäsi sitaatin jossain muualla kuin täällä o.O')
 
     @staticmethod
-    def quote(bot, update):
+    def quote(update: Update, context: CallbackContext):
         space = update.message.text.find(' ')
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
@@ -243,7 +243,7 @@ class TelegramBot:
             c.execute("SELECT * FROM quotes WHERE groupID=? ORDER BY RANDOM() LIMIT 1", (update.message.chat_id,))
             quotes = c.fetchall()
             if len(quotes) == 0:
-                bot.send_message(chat_id=update.message.chat_id, text='Yhtään sitaattia ei ole lisätty.')
+                context.bot.send_message(chat_id=update.message.chat_id, text='Yhtään sitaattia ei ole lisätty.')
 
         else:
             name = update.message.text[space + 1:]
@@ -252,22 +252,22 @@ class TelegramBot:
                        update.message.chat_id))
             quotes = c.fetchall()
             if len(quotes) == 0:
-                bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
+                context.bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
                 return
-        bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][2]}" -{quotes[0][1].capitalize()}')
+        context.bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][2]}" -{quotes[0][1].capitalize()}')
 
     @staticmethod
-    def viisaus(bot, update):
+    def viisaus(update: Update, context: CallbackContext):
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         c.execute("SELECT * FROM sananlaskut ORDER BY RANDOM() LIMIT 1")
         wisenings = c.fetchall()
-        bot.send_message(chat_id=update.message.chat_id, text=wisenings[0][0])
+        context.bot.send_message(chat_id=update.message.chat_id, text=wisenings[0][0])
 
     @staticmethod
-    def kuka(bot, update):
+    def kuka(update: Update, context: CallbackContext):
         index = random.randint(0, len(config.MEMBERS)-1)
-        bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
+        context.bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
 
     @staticmethod
     def create_tables():
@@ -289,37 +289,40 @@ class TelegramBot:
         conn.close()
 
     @staticmethod
-    def weather(bot, update):
+    def weather(update: Update, context: CallbackContext):
         try:
             city = update.message.text[5:]
             weather = WeatherGod()
-            bot.send_message(chat_id=update.message.chat_id,
+            context.bot.send_message(chat_id=update.message.chat_id,
                              text=weather.generateWeatherReport(city))
         except AttributeError:
-            bot.send_message(chat_id=update.message.chat_id,
+            context.bot.send_message(chat_id=update.message.chat_id,
                              text="Komento vaatii parametrin >KAUPUNKI< \n"
                                   "Esim: /saa Hervanta ")
             return
 
     @staticmethod
-    def kick(bot, update, job_queue):
+    def kick(update: Update, context: CallbackContext):
         try:
-            bot.kickChatMember(update.message.chat.id, update.message.from_user.id)
-            job_queue.run_once(TelegramBot.invite, 60, context=[update.message.chat_id, update.message.from_user.id])
+            context.bot.kickChatMember(update.message.chat.id, update.message.from_user.id)
+            context.job_queue.run_once(TelegramBot.invite, 60, context=[update.message.chat_id, update.message.from_user.id,
+                               update.message.chat.invite_link])
         except TelegramError:
-            bot.send_message(chat_id=update.message.chat_id, text="Vielä joku päivä...")
+            context.bot.send_message(chat_id=update.message.chat_id, text="Vielä joku päivä...")
 
     @staticmethod
-    def invite(bot, job):
-        bot.unBanChatMember(chat_id=job.context[0], user_id=job.context[1])
+    def invite(update: Update, context: CallbackContext):
+        job = context.job
+        context.bot.unBanChatMember(chat_id=job.context[0], user_id=job.context[1])
+        context.bot.send_message(chat_id=job.context[1], text=job.context[2])
 
-    def voc(self, bot, update):
+    def voc(self, update: Update, context: CallbackContext):
         if self.voc_calc():
-            bot.send_message(chat_id=update.message.chat_id, text="Value of content: Laskussa")
+            context.bot.send_message(chat_id=update.message.chat_id, text="Value of content: Laskussa")
         else:
-            bot.send_message(chat_id=update.message.chat_id, text="Value of content: Nousussa")
+            context.bot.send_message(chat_id=update.message.chat_id, text="Value of content: Nousussa")
 
-    def voc_check(self, bot, job):
+    def voc_check(self, update: Update, context: CallbackContext):
         now = time()
         while len(self.voc_cmd) > 0:
             if now - self.voc_cmd[0] > 7200:
@@ -332,7 +335,7 @@ class TelegramBot:
             else:
                 return
 
-    def voc_add(self, bot, update):
+    def voc_add(self, update: Update):
         if update.message.entities is None:
             self.voc_msg.append(time())
         for i in update.message.entities:
@@ -356,7 +359,7 @@ class TelegramBot:
         return cmds - 4 > msgs
 
     @staticmethod
-    def cocktail(bot, update):
+    def cocktail(update: Update, context: CallbackContext):
         conn = sqlite3.connect(config.DB_FILE)
         c = conn.cursor()
         sql = '''SELECT * FROM adjektiivit ORDER BY RANDOM() LIMIT 1'''
@@ -370,7 +373,7 @@ class TelegramBot:
         conn.close()
 
         if update.message.text[0:12] == '/cocktail -n':
-            bot.send_message(chat_id=update.message.chat_id, text=f'{adj} {sub}', disable_notification=True)
+            context.bot.send_message(chat_id=update.message.chat_id, text=f'{adj} {sub}', disable_notification=True)
             return
 
         # generate cocktail name
@@ -407,34 +410,34 @@ class TelegramBot:
             vol = str(random.randrange(5, 20, 5))
             msg += "-" + vol + " " + "cl " + rnd + "\n"
 
-        bot.send_message(chat_id=update.message.chat_id, text=msg)
+        context.bot.send_message(chat_id=update.message.chat_id, text=msg)
 
-    def huuto(self, bot, update):
+    def huuto(self, update: Update, context: CallbackContext):
         rng = random.randint(0, 99)
         r = regex.compile(r"^(?![\W])[^[:lower:]]+$")
-        self.voc_add(bot, update)
-        self.leffaReply(bot, update)
+        self.voc_add(update)
+        self.leffaReply(update, context)
         if rng >= len(stuff.message) or not r.match(update.message.text):
             return
 
-        bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng], disable_notification=True)
+        context.bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng], disable_notification=True)
 
-    def leffa(self, bot, update):
+    def leffa(self, update: Update, context: CallbackContext):
         custom_keyboard = leffa.generateKeyboard()
         reply_markup = ReplyKeyboardMarkup(build_menu(custom_keyboard, n_cols=2))
-        bot.send_message(chat_id=update.message.chat_id,
-                         text="Leffoja",
-                         reply_markup=reply_markup)
+        context.bot.send_message(chat_id=update.message.chat_id,
+                                 text="Leffoja",
+                                 reply_markup=reply_markup)
 
     @staticmethod
-    def leffaReply(bot, update):
+    def leffaReply(update: Update, context: CallbackContext):
         if update.message.reply_to_message is None:
             return
         if update.message.reply_to_message.text != "Leffoja":
             return
         premiere = leffa.getMovie(update.message.text)
         reply_markup = ReplyKeyboardRemove()
-        bot.send_message(chat_id=update.message.chat_id, text=f'Ensi-ilta on {premiere}', reply_markup=reply_markup)
+        context.bot.send_message(chat_id=update.message.chat_id, text=f'Ensi-ilta on {premiere}', reply_markup=reply_markup)
 
 
 def build_menu(buttons,
