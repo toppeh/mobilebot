@@ -14,7 +14,7 @@ import random
 from time import time
 from weather import WeatherGod
 
-
+# hyviä ehdotuksia: krediitti ja vitsi
 class TelegramBot:
     def __init__(self):
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
@@ -23,17 +23,6 @@ class TelegramBot:
         updater = Updater(token=config.TOKEN_KB, use_context=True)
         dispatcher = updater.dispatcher
 
-        dispatcher.add_handler(PrefixHandler(['!', '.', '/'], "kick", self.kick, pass_job_queue=True))
-        #dispatcher.add_handler(CommandHandler("kick", self.kick, pass_job_queue=True))
-        dispatcher.add_handler(MessageHandler(Filters.command, self.commandsHandler))
-        dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
-        dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
-        # TODO: Tee textHandler niminen funktio mikä on sama kuin commandsHandler mutta tekstille
-        # TODO: Ota voc_add pois huuto():sta :DDD
-        # TODO: Tee filtterit niin, että gifit ja kuvat kasvattaa self.voc_msg:eä
-
-        dispatcher.job_queue.run_repeating(self.voc_check, interval=60, first=5)
-
         self.commands = {'wabu': self.wabu,
                          'kiitos': self.kiitos,
                          'sekseli': self.sekseli,
@@ -41,6 +30,7 @@ class TelegramBot:
                          'pöytä': self.poyta,
                          'insv': self.insv,
                          'quoteadd': self.quoteadd,
+                         'addquote': self.quoteadd,
                          'quote': self.quote,
                          'viisaus': self.viisaus,
                          'saa': self.weather,
@@ -54,6 +44,17 @@ class TelegramBot:
                          'leffa': self.leffa
                          }
 
+        for cmd, callback in self.commands.items():
+            dispatcher.add_handler(PrefixHandler(['!', '.', '/'], cmd, callback))
+
+        dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
+        dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
+        # TODO: Tee textHandler niminen funktio mikä on sama kuin commandsHandler mutta tekstille
+        # TODO: Ota voc_add pois huuto():sta :DDD
+        # TODO: Tee filtterit niin, että gifit ja kuvat kasvattaa self.voc_msg:eä
+
+        dispatcher.job_queue.run_repeating(self.voc_check, interval=60, first=5)
+
         self.noCooldown = (self.quoteadd, self.leffa, self.kick)
 
         self.users = {}  # user_id : unix timestamp
@@ -61,9 +62,8 @@ class TelegramBot:
         self.voc_msg = list()
         self.create_tables()
         updater.start_polling()
-       # updater.idle()
+        # updater.idle()
         logging.info('Botti käynnistetty')
-
 
     @staticmethod
     def wabu(update: Update, context: CallbackContext):
@@ -75,8 +75,9 @@ class TelegramBot:
         seconds = erotus.seconds - hours * 3600 - minutes * 60
 
         context.bot.send_message(chat_id=update.message.chat_id,
-                         text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja {seconds} '
-                         f'sekuntia', disable_notification=True)
+                                 text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja'
+                                      f' {seconds} sekuntia',
+                                 disable_notification=True)
 
     @staticmethod
     def episode_ix(update: Update, context: CallbackContext):
@@ -84,22 +85,22 @@ class TelegramBot:
         tanaan = datetime.now()
         erotus = wabu - tanaan
         context.bot.send_message(chat_id=update.message.chat_id,
-                         text=f'Ensi-iltaan on {erotus.days} päivää.', disable_notification=True)
+                                 text=f'Ensi-iltaan on {erotus.days} päivää.', disable_notification=True)
 
     @staticmethod
     def kiitos(update: Update, context: CallbackContext):
         if update.message.reply_to_message is not None:
             context.bot.send_message(chat_id=update.message.chat_id,
-                             text=f'Kiitos {update.message.reply_to_message.from_user.first_name}!',
-                             disable_notifications=True)
+                                     text=f'Kiitos {update.message.reply_to_message.from_user.first_name}!',
+                                     disable_notifications=True)
         else:
             context.bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori!', disable_notification=True)
 
     @staticmethod
     def sekseli(update: Update, context: CallbackContext):
         if update.message.chat_id == config.MOBILE_ID:
-            context.bot.forward_message(chat_id=update.message.chat_id, from_chat_id=config.MOBILE_ID, message_id=316362,
-                                disable_notification=True)
+            context.bot.forward_message(chat_id=update.message.chat_id, from_chat_id=config.MOBILE_ID,
+                                        message_id=316362, disable_notification=True)
 
     @staticmethod
     def poyta(update: Update, context: CallbackContext):
@@ -108,73 +109,6 @@ class TelegramBot:
     @staticmethod
     def insv(update: Update, context: CallbackContext):
         context.bot.send_sticker(chat_id=update.message.chat_id, sticker=config.insv, disable_notification=True)
-
-    def cooldownFilter(self, update: Update, command):
-
-        try:
-            if self.commands[command] in self.noCooldown:
-                return True
-        except KeyError:
-            return False
-
-        cordon = 3600  # time in seconds
-        #  cordon = 1  # For testing purposes
-        if not update.message.from_user.id:
-            # Some updates are not from any user -- ie when bot is added to a group
-            return False
-
-        chat_id = update.message.chat_id
-        user_id = update.message.from_user.id
-
-        if chat_id not in self.users.keys():
-            # new chat, add id
-            self.users[chat_id] = {}
-
-        if user_id not in self.users[chat_id].keys():
-            # new user, add id to users
-            self.users[chat_id][user_id] = time()
-            return True
-
-        else:
-            # old user
-            if time() - self.users[chat_id][user_id] < cordon:
-                # caught in spam filter
-                return False
-            else:
-                # passed the spam filter.
-                self.users[chat_id][user_id] = time()
-                return True
-
-    def commandsHandler(self, update: Update, context: CallbackContext):
-        # Ignore messages older than 30 seconds
-        if not datetime.today() - update.message.date < timedelta(0, 30):
-            return
-        if update.message.entities is None:
-            return
-        bot_name = context.bot.get_me().username
-        commands = self.commandParser(update.message, bot_name)
-        for command in commands:
-            if command in self.commands:
-                if self.cooldownFilter(update, command):
-                    self.commands[command](context.bot, update)
-        self.voc_add(update)
-
-    @staticmethod
-    def commandParser(msg, bot_name):
-        # Parses commands from the message, changing them to lowercase and removing the slash and bot's name.
-        commands = list()
-        for i in msg.entities:
-            if i.type == 'bot_command':
-                command = msg.text[i.offset + 1: i.offset + i.length].lower()
-                temp = command.split('@')
-                if len(temp) > 1 and temp[1] == bot_name:
-                    commands.append(temp[0])
-                elif len(temp) == 1:
-                    commands.append(temp[0])
-        is_desk = msg.text.find('pöytä')
-        if is_desk != -1:
-            commands.append(msg.text["poyta"])
-        return commands
 
     @staticmethod
     def pinned(update: Update, context: CallbackContext):
@@ -210,8 +144,8 @@ class TelegramBot:
             return
 
         if second_space != -1:
-            temp = (text[10:second_space].lower(), text[second_space + 1:], update.message.chat_id)
-            quote = (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), text[10:second_space].lower(),
+            temp = (text[10:second_space], text[second_space + 1:], update.message.chat_id)
+            quote = (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), text[10:second_space],
                      text[second_space + 1:], update.message.from_user.username, update.message.chat_id)
             conn = sqlite3.connect(config.DB_FILE)
             cur = conn.cursor()
@@ -247,14 +181,14 @@ class TelegramBot:
 
         else:
             name = update.message.text[space + 1:]
-            c.execute("""SELECT * FROM quotes WHERE quotee=? AND groupID=? ORDER BY RANDOM() LIMIT 1""",
+            c.execute("""SELECT * FROM quotes WHERE LOWER(quotee)=? AND groupID=? ORDER BY RANDOM() LIMIT 1""",
                       (name.lower(),
                        update.message.chat_id))
             quotes = c.fetchall()
             if len(quotes) == 0:
                 context.bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
                 return
-        context.bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][2]}" -{quotes[0][1].capitalize()}')
+        context.bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][2]}" -{quotes[0][1]}')
 
     @staticmethod
     def viisaus(update: Update, context: CallbackContext):
