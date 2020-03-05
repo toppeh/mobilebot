@@ -27,14 +27,14 @@ class TelegramBot:
                          'kiitos': self.kiitos,
                          'sekseli': self.sekseli,
                          'poyta': self.poyta,
-                         'pöytä': self.poyta,
+                         #'pöytä': self.poyta,
                          'insv': self.insv,
                          'quoteadd': self.quoteadd,
                          'addquote': self.quoteadd,
                          'quote': self.quote,
                          'viisaus': self.viisaus,
                          'saa': self.weather,
-                         'sää': self.weather,
+                         #'sää': self.weather,
                          'kuka': self.kuka,
                          'value_of_content': self.voc,
                          'voc': self.voc,
@@ -46,6 +46,7 @@ class TelegramBot:
 
         for cmd, callback in self.commands.items():
             dispatcher.add_handler(PrefixHandler(['!', '.', '/'], cmd, callback))
+            dispatcher.add_handler(CommandHandler(cmd, callback))
 
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
@@ -67,7 +68,7 @@ class TelegramBot:
 
     @staticmethod
     def wabu(update: Update, context: CallbackContext):
-        wabu = datetime(2020, 4, 13, 13)
+        wabu = datetime(2020, 4, 15, 13)
         tanaan = datetime.now()
         erotus = wabu - tanaan
         hours = erotus.seconds // 3600
