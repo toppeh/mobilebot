@@ -74,10 +74,14 @@ class TelegramBot:
         hours = erotus.seconds // 3600
         minutes = (erotus.seconds - hours*3600) // 60
         seconds = erotus.seconds - hours * 3600 - minutes * 60
-
+        """
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja'
                                       f' {seconds} sekuntia',
+                                 disable_notification=True)
+        """
+         context.bot.send_message(chat_id=update.message.chat_id,
+                                 text=f'Wappu 2020 on peruttu (siirretty) :(',
                                  disable_notification=True)
 
     @staticmethod
@@ -86,7 +90,7 @@ class TelegramBot:
         tanaan = datetime.now()
         erotus = wabu - tanaan
         context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f'Ensi-iltaan on {erotus.days} päivää.', disable_notification=True)
+                                 text=f'Ensi-iltaan on mennyt jo kauan sitten.', disable_notification=True)
 
     @staticmethod
     def kiitos(update: Update, context: CallbackContext):
@@ -373,7 +377,6 @@ class TelegramBot:
         premiere = leffa.getMovie(update.message.text)
         reply_markup = ReplyKeyboardRemove()
         context.bot.send_message(chat_id=update.message.chat_id, text=f'Ensi-ilta on {premiere}', reply_markup=reply_markup)
-
 
 def build_menu(buttons,
                n_cols,
