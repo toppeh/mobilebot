@@ -41,7 +41,7 @@ class TelegramBot:
                          'cocktail': self.cocktail,
                          'episode_ix': self.episode_ix,
                          'kick': self.kick,
-                         'leffa': self.leffa
+                         'leffa': self.leffa,
                          'voivoi': self.voivoi
                          }
 
