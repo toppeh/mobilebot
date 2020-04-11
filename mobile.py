@@ -41,7 +41,8 @@ class TelegramBot:
                          'cocktail': self.cocktail,
                          'episode_ix': self.episode_ix,
                          'kick': self.kick,
-                         'leffa': self.leffa
+                         'leffa': self.leffa,
+                         'voivoi': self.voivoi
                          }
 
         for cmd, callback in self.commands.items():
@@ -100,6 +101,15 @@ class TelegramBot:
                                      disable_notifications=True)
         else:
             context.bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori!', disable_notification=True)
+
+    @staticmethod
+    def voivoi(update: Update, context: CallbackContext):
+        if update.message.reply_to_message is not None:
+            context.bot.send_message(chat_id=update.message.chat_id,
+                                     text=f'voi voi {update.message.reply_to_message.from_user.first_name}😩😩😩',
+                                     disable_notifications=True)
+        else:
+            context.bot.send_message(chat_id=update.message.chat_id, text='voi voi Nuutti😩😩😩', disable_notification=True)
 
     @staticmethod
     def sekseli(update: Update, context: CallbackContext):
