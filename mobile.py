@@ -4,10 +4,10 @@ import regex
 import logging
 import sqlite3
 
-from datetime import timedelta, datetime
+from datetime import datetime
 import config
 import stuff
-import leffa
+import get
 from telegram.ext import Updater, MessageHandler, CommandHandler, Filters, PrefixHandler, CallbackContext
 from telegram import TelegramError, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 import random
@@ -42,7 +42,8 @@ class TelegramBot:
                          'episode_ix': self.episode_ix,
                          'kick': self.kick,
                          'leffa': self.leffa,
-                         'voivoi': self.voivoi
+                         'voivoi': self.voivoi,
+                         'fiilis': self.getFiilis
                          }
 
         for cmd, callback in self.commands.items():
@@ -81,7 +82,7 @@ class TelegramBot:
                                       f' {seconds} sekuntia',
                                  disable_notification=True)
         """
-         context.bot.send_message(chat_id=update.message.chat_id,
+        context.bot.send_message(chat_id=update.message.chat_id,
                                  text=f'Wappu 2020 on peruttu (siirretty) :(',
                                  disable_notification=True)
 
@@ -372,7 +373,7 @@ class TelegramBot:
         context.bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng], disable_notification=True)
 
     def leffa(self, update: Update, context: CallbackContext):
-        custom_keyboard = leffa.generateKeyboard()
+        custom_keyboard = get.generateKeyboard()
         reply_markup = ReplyKeyboardMarkup(build_menu(custom_keyboard, n_cols=2))
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text="Leffoja",
@@ -384,9 +385,16 @@ class TelegramBot:
             return
         if update.message.reply_to_message.text != "Leffoja":
             return
-        premiere = leffa.getMovie(update.message.text)
+        premiere = get.getMovie(update.message.text)
         reply_markup = ReplyKeyboardRemove()
         context.bot.send_message(chat_id=update.message.chat_id, text=f'Ensi-ilta on {premiere}', reply_markup=reply_markup)
+
+    @staticmethod
+    def getFiilis(update: Update, context: CallbackContext):
+        imgUrl = get.getImage()
+        if imgUrl != "":
+            context.bot.send_photo(chat_id=update.message.chat_id, photo=imgUrl)
+
 
 def build_menu(buttons,
                n_cols,
