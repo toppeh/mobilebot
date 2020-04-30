@@ -1,6 +1,9 @@
 import requests
 import xml.etree.ElementTree as ET
 from telegram import KeyboardButton
+import regex
+import random
+from stuff import feels, ssHeaders
 
 
 def generateKeyboard():
@@ -32,3 +35,17 @@ def getMovie(name):
                 return i.text
     return "Ensi-iltaa ei löytynyt"
 
+
+def getImage():
+    feeling = random.choice(feels) + "+" + random.choice(["man", "men", "woman", "women", "boy", "boys", "girl", "girls"])
+    url = "https://www.shutterstock.com/fi/search/"+feeling
+    res = requests.get(url, headers=ssHeaders, timeout=1)
+    print(res.text)
+    print(res.request.headers)
+    re = regex.compile(r'src="(https://image.shutterstock.com/image-photo/.+?)"')
+    imageList = re.findall(res.text)
+    if imageList:
+        imgUrl = random.choice(imageList)
+        return imgUrl
+    else:
+        return ""
