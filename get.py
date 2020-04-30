@@ -40,8 +40,6 @@ def getImage():
     feeling = random.choice(feels) + "+" + random.choice(["man", "men", "woman", "women", "boy", "boys", "girl", "girls"])
     url = "https://www.shutterstock.com/fi/search/"+feeling
     res = requests.get(url, headers=ssHeaders, timeout=1)
-    print(res.text)
-    print(res.request.headers)
     re = regex.compile(r'src="(https://image.shutterstock.com/image-photo/.+?)"')
     imageList = re.findall(res.text)
     if imageList:
