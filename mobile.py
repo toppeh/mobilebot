@@ -20,7 +20,7 @@ class TelegramBot:
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
                             '%(message)s', filemode='w', level=logging.WARNING)
 
-        updater = Updater(token=config.TOKEN_KB, use_context=True)
+        updater = Updater(token=config.TOKEN, use_context=True)
         dispatcher = updater.dispatcher
 
         self.commands = {'wabu': self.wabu,
@@ -394,6 +394,8 @@ class TelegramBot:
         imgUrl = get.getImage()
         if imgUrl != "":
             context.bot.send_photo(chat_id=update.message.chat_id, photo=imgUrl)
+        else:
+            context.bot.send_message(chat_id=update.message.chat_id, text="Ei fiilistä")
 
 
 def build_menu(buttons,

@@ -43,7 +43,7 @@ def getImage():
         url = "https://www.shutterstock.com/fi/search/"+feeling
     else:
         url = "https://www.shutterstock.com/fi/search/" + random.choice(emotions)
-    res = requests.get(url, headers=ssHeaders, timeout=1)
+    res = requests.get(url, headers=ssHeaders, timeout=3)
     re = regex.compile(r'src="(https://image.shutterstock.com/image-[(?:photo)(?:vector)]+/.+?)"')
     imageList = re.findall(res.text)
     if imageList:
