@@ -65,4 +65,33 @@ def dbQuery(query, params=()):
     res = cur.fetchall()
     conn.close()
     return res
-    pass
+
+def create_tables():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS substantiivit ("sub" text)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS pinned ("date" text, "name" text, "text" text)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS sananlaskut ("teksti" text)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS adjektiivit ("adj" text)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS quotes (
+        "date" TEXT DEFAULT CURRENT_TIMESTAMP,
+        "quotee" TEXT,
+        "quote" TEXT,
+        "adder" TEXT,
+        "groupID" INT,
+        PRIMARY KEY(quotee, quote, groupID)
+        )
+        ''')
+    conn.close()
+
+def build_menu(buttons,
+               n_cols,
+               header_buttons=None,
+               footer_buttons=None):
+    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+    if header_buttons:
+        menu.insert(0, [header_buttons])
+    if footer_buttons:
+        menu.append([footer_buttons])
+    return menu
+

@@ -63,7 +63,7 @@ class TelegramBot:
         self.users = {}  # user_id : unix timestamp
         self.voc_cmd = list()
         self.voc_msg = list()
-        self.create_tables()
+        get.create_tables()
         updater.start_polling()
         # updater.idle()
         logging.info('Botti käynnistetty')
@@ -145,44 +145,29 @@ class TelegramBot:
 
     @staticmethod
     def quoteadd(update: Update, context: CallbackContext):
-        text = update.message.text
-        first_space = 9
-        if text[first_space] != ' ':
-            context.bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
-                                                                  " <nimi> <sitaatti>)")
-            return False
-        # try to find the end of the name
-        try:
-            second_space = text.find(' ', first_space + 1)
-        except IndexError:
-            context.bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
-                                                                  " <nimi> <sitaatti>)")
-            return
-
-        if second_space != -1:
-            temp = (text[10:second_space], text[second_space + 1:], update.message.chat_id)
-            quote = (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), text[10:second_space],
-                     text[second_space + 1:], update.message.from_user.username, update.message.chat_id)
-            conn = sqlite3.connect(config.DB_FILE)
-            cur = conn.cursor()
-            sql_select = "SELECT * FROM quotes WHERE quotee=? AND quote=? AND groupID=?"
-            cur.execute(sql_select, temp)
-            result = cur.fetchall()
+        r = regex.compile(r'\/quoteadd (.[^\s]+) (.+)')
+        match = r.match(update.message.text)
+        if match:
+            temp = (match[1], match[2], update.message.chat_id)
+            # tarkasta onko sitaatti jo lisätty joskus aiemmin
+            result = get.dbQuery("SELECT * FROM quotes WHERE quotee=? AND quote=? AND groupID=?", temp)
             if len(result) != 0:
                 context.bot.send_message(chat_id=update.message.chat_id, text="Toi on jo niin kuultu...",
-                                 disable_notification=True)
+                                         disable_notification=True)
                 return
+            quote = (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), match[1],
+                     match[2], update.message.from_user.username, update.message.chat_id)
+            conn = sqlite3.connect(config.DB_FILE)
+            cur = conn.cursor()
             sql_insert = "INSERT INTO quotes VALUES (?,?,?,?,?)"
             cur.execute(sql_insert, quote)
             conn.commit()
             conn.close()
             context.bot.send_message(chat_id=update.message.chat_id, text="Sitaatti suhahti")
         else:
-            context.bot.send_message(chat_id=update.message.chat_id, text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
-                                                                  " <nimi> <sitaatti>)")
-        if update.message.chat_id != config.MOBILE_ID:
-            context.bot.send_message(chat_id=config.MOBILE_ID, text=f'@{update.message.from_user.username}'
-                                                            f' lisäsi sitaatin jossain muualla kuin täällä o.O')
+            context.bot.send_message(chat_id=update.message.chat_id,
+                                     text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
+                                          " <nimi> <sitaatti>)")
 
     @staticmethod
     def quote(update: Update, context: CallbackContext):
@@ -212,24 +197,6 @@ class TelegramBot:
         index = random.randint(0, len(config.MEMBERS)-1)
         context.bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
 
-    @staticmethod
-    def create_tables():
-        conn = sqlite3.connect(config.DB_FILE)
-        c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS substantiivit ("sub" text)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS pinned ("date" text, "name" text, "text" text)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS sananlaskut ("teksti" text)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS adjektiivit ("adj" text)''')
-        c.execute('''CREATE TABLE IF NOT EXISTS quotes (
-           "date" TEXT DEFAULT CURRENT_TIMESTAMP,
-           "quotee" TEXT,
-           "quote" TEXT,
-           "adder" TEXT,
-           "groupID" INT,
-           PRIMARY KEY(quotee, quote, groupID)
-           )
-           ''')
-        conn.close()
 
     @staticmethod
     def weather(update: Update, context: CallbackContext):
@@ -356,9 +323,10 @@ class TelegramBot:
 
         context.bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng], disable_notification=True)
 
-    def leffa(self, update: Update, context: CallbackContext):
+    @staticmethod
+    def leffa(update: Update, context: CallbackContext):
         custom_keyboard = get.generateKeyboard()
-        reply_markup = ReplyKeyboardMarkup(build_menu(custom_keyboard, n_cols=2))
+        reply_markup = ReplyKeyboardMarkup(get.build_menu(custom_keyboard, n_cols=2))
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text="Leffoja",
                                  reply_markup=reply_markup)
@@ -380,18 +348,6 @@ class TelegramBot:
             context.bot.send_photo(chat_id=update.message.chat_id, photo=imgUrl)
         else:
             context.bot.send_message(chat_id=update.message.chat_id, text="Ei fiilistä")
-
-
-def build_menu(buttons,
-               n_cols,
-               header_buttons=None,
-               footer_buttons=None):
-    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
-    if header_buttons:
-        menu.insert(0, [header_buttons])
-    if footer_buttons:
-        menu.append([footer_buttons])
-    return menu
 
 
 if __name__ == '__main__':
