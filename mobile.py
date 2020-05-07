@@ -187,20 +187,16 @@ class TelegramBot:
     @staticmethod
     def quote(update: Update, context: CallbackContext):
         space = update.message.text.find(' ')
-        conn = sqlite3.connect(config.DB_FILE)
-        c = conn.cursor()
         if space == -1:
-            c.execute("SELECT * FROM quotes WHERE groupID=? ORDER BY RANDOM() LIMIT 1", (update.message.chat_id,))
-            quotes = c.fetchall()
+            quotes = get.dbQuery("SELECT * FROM quotes WHERE groupID=? ORDER BY RANDOM() LIMIT 1", (update.message.chat_id,))
             if len(quotes) == 0:
                 context.bot.send_message(chat_id=update.message.chat_id, text='Yhtään sitaattia ei ole lisätty.')
 
         else:
             name = update.message.text[space + 1:]
-            c.execute("""SELECT * FROM quotes WHERE LOWER(quotee)=? AND groupID=? ORDER BY RANDOM() LIMIT 1""",
+            quotes = get.dbQuery("""SELECT * FROM quotes WHERE LOWER(quotee)=? AND groupID=? ORDER BY RANDOM() LIMIT 1""",
                       (name.lower(),
                        update.message.chat_id))
-            quotes = c.fetchall()
             if len(quotes) == 0:
                 context.bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
                 return
@@ -208,10 +204,7 @@ class TelegramBot:
 
     @staticmethod
     def viisaus(update: Update, context: CallbackContext):
-        conn = sqlite3.connect(config.DB_FILE)
-        c = conn.cursor()
-        c.execute("SELECT * FROM sananlaskut ORDER BY RANDOM() LIMIT 1")
-        wisenings = c.fetchall()
+        wisenings = get.dbQuery("SELECT * FROM sananlaskut ORDER BY RANDOM() LIMIT 1")
         context.bot.send_message(chat_id=update.message.chat_id, text=wisenings[0][0])
 
     @staticmethod
@@ -310,17 +303,8 @@ class TelegramBot:
 
     @staticmethod
     def cocktail(update: Update, context: CallbackContext):
-        conn = sqlite3.connect(config.DB_FILE)
-        c = conn.cursor()
-        sql = '''SELECT * FROM adjektiivit ORDER BY RANDOM() LIMIT 1'''
-        c.execute(sql)
-        adj = c.fetchall()[0][0].capitalize()  # fetchall returns tuple in list
-
-        sql = '''SELECT * FROM substantiivit ORDER BY RANDOM() LIMIT 1'''
-        c.execute(sql)
-        sub = c.fetchall()[0][0]
-
-        conn.close()
+        adj = get.dbQuery('''SELECT * FROM adjektiivit ORDER BY RANDOM() LIMIT 1''')[0][0].capitalize() # fetchall returns tuple in list
+        sub = get.dbQuery('''SELECT * FROM substantiivit ORDER BY RANDOM() LIMIT 1''')[0][0]
 
         if update.message.text[0:12] == '/cocktail -n':
             context.bot.send_message(chat_id=update.message.chat_id, text=f'{adj} {sub}', disable_notification=True)

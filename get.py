@@ -4,6 +4,8 @@ from telegram import KeyboardButton
 import regex
 import random
 from stuff import feels, ssHeaders, emotions
+import sqlite3
+from config import DB_FILE
 
 
 def generateKeyboard():
@@ -51,3 +53,16 @@ def getImage():
         return imgUrl
     else:
         return ""
+
+
+def dbQuery(query, params=()):
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+    if len(params) == 0:
+        cur.execute(query)
+    else:
+        cur.execute(query, params)
+    res = cur.fetchall()
+    conn.close()
+    return res
+    pass
