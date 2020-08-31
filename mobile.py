@@ -43,7 +43,8 @@ class TelegramBot:
                          'kick': self.kick,
                          'leffa': self.leffa,
                          'voivoi': self.voivoi,
-                         'fiilis': self.getFiilis
+                         'fiilis': self.getFiilis,
+                         'viikonloppu': self.viikonloppu,
                          }
 
         for cmd, callback in self.commands.items():
@@ -348,6 +349,12 @@ class TelegramBot:
             context.bot.send_photo(chat_id=update.message.chat_id, photo=imgUrl)
         else:
             context.bot.send_message(chat_id=update.message.chat_id, text="Ei fiilistä")
+
+    @staticmethod
+    def viikonloppu(update: Update, context: CallbackContext):
+        context.bot.send_message(chat_id = update.message.chat_id, 
+                                 text = f'On viiiiiikonloppu! https://youtu.be/vkVidHRkF88',
+                                 disable_notifications = True)
 
 
 if __name__ == '__main__':
