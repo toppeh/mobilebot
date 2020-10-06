@@ -45,11 +45,12 @@ class TelegramBot:
                          'voivoi': self.voivoi,
                          'fiilis': self.getFiilis,
                          'viikonloppu': self.viikonloppu,
+                         'rudelf': self.rudelf
                          }
 
         for cmd, callback in self.commands.items():
             dispatcher.add_handler(PrefixHandler(['!', '.', '/'], cmd, callback))
-            dispatcher.add_handler(CommandHandler(cmd, callback))
+            #dispatcher.add_handler(CommandHandler(cmd, callback))
 
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
@@ -84,7 +85,7 @@ class TelegramBot:
                                  disable_notification=True)
         """
         context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f'Wappu 2020 on peruttu (siirretty) :(',
+                                 text=f'Wappu on joskus',
                                  disable_notification=True)
 
     @staticmethod
@@ -352,10 +353,21 @@ class TelegramBot:
 
     @staticmethod
     def viikonloppu(update: Update, context: CallbackContext):
-        context.bot.send_message(chat_id = update.message.chat_id, 
-                                 text = f'On viiiiiikonloppu! https://youtu.be/vkVidHRkF88',
-                                 disable_notifications = True)
+        context.bot.send_message(chat_id=update.message.chat_id,
+                                 text=f'On viiiiiikonloppu! https://youtu.be/vkVidHRkF88',
+                                 disable_notifications=True)
 
+    def rudelf(self, update: Update, context: CallbackContext):
+        if update.message.reply_to_message is False or update.message.reply_to_message.text is None:
+            return
+        # Capitalize
+        msg = update.message.reply_to_message.text[0].upper() + update.message.reply_to_message.text[1:]
+        for key, val in stuff.rudismit.items():
+            msg = regex.sub(regex.compile(key), val, msg)
+        if random.randint(0,9) < 3:
+            msg = msg + " 😅"
+        context.bot.send_message(chat_id=update.message.chat_id,
+                                 text=msg, disable_notification=True)
 
 if __name__ == '__main__':
     TelegramBot()
