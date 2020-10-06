@@ -58,5 +58,6 @@ rudismit = {"[hH]ai": "🦈",
             "pee": "B",
             "pe": "B",
             "kalja": "🍺",
-            "k": "G"
+            "k": "G",
+            "ksaa": "G"
             }
