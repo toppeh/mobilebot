@@ -72,7 +72,6 @@ class TelegramBot:
 
     @staticmethod
     def wabu(update: Update, context: CallbackContext):
-        print("mit vit")
         wabu = datetime(2021, 4, 15, 13)
         tanaan = datetime.now()
         erotus = wabu - tanaan
@@ -85,11 +84,9 @@ class TelegramBot:
                                       f' {seconds} sekuntia',
                                  disable_notification=True)
         """
-        print("halo")
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=f'Wappu on joskus',
                                  disable_notification=True)
-        print("lol")
 
     @staticmethod
     def episode_ix(update: Update, context: CallbackContext):
