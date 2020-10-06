@@ -358,9 +358,10 @@ class TelegramBot:
                                  disable_notifications=True)
 
     def rudelf(self, update: Update, context: CallbackContext):
-        if update.message.reply_to_message is False:
+        if update.message.reply_to_message is False or update.message.reply_to_message.text is None:
             return
-        msg = update.message.reply_to_message.text
+        # Capitalize
+        msg = update.message.reply_to_message.text[0].upper() + update.message.reply_to_message.text[1:]
         for key, val in stuff.rudismit.items():
             msg = regex.sub(regex.compile(key), val, msg)
         context.bot.send_message(chat_id=update.message.chat_id,
