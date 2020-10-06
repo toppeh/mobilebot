@@ -364,6 +364,8 @@ class TelegramBot:
         msg = update.message.reply_to_message.text[0].upper() + update.message.reply_to_message.text[1:]
         for key, val in stuff.rudismit.items():
             msg = regex.sub(regex.compile(key), val, msg)
+        if random.randint(0,9) < 3:
+            msg = msg + " 😅"
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=msg, disable_notification=True)
 
