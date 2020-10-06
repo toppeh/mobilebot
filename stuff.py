@@ -45,3 +45,12 @@ ssHeaders = {"Host": "www.shutterstock.com",
              "Accept-Encoding": "gzip, deflate, br",
              "DNT": "1",
              "Upgrade-Insecure-Requests": "1"}
+
+rudismit = {"hai": "🦈",
+            "\?": "? 🤔",
+            "b": "🅱",
+            "pee": "B",
+            "pe": "B",
+            "kalja": "🍺",
+            "k": "G"
+            }
