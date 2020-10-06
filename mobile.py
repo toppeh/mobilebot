@@ -50,7 +50,7 @@ class TelegramBot:
 
         for cmd, callback in self.commands.items():
             dispatcher.add_handler(PrefixHandler(['!', '.', '/'], cmd, callback))
-            #dispatcher.add_handler(CommandHandler(cmd, callback))
+            dispatcher.add_handler(CommandHandler(cmd, callback)) # ÄLÄ POISTA TAI KOMMENTOI
 
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
@@ -72,7 +72,8 @@ class TelegramBot:
 
     @staticmethod
     def wabu(update: Update, context: CallbackContext):
-        wabu = datetime(2020, 4, 15, 13)
+        print("mit vit")
+        wabu = datetime(2021, 4, 15, 13)
         tanaan = datetime.now()
         erotus = wabu - tanaan
         hours = erotus.seconds // 3600
@@ -84,9 +85,11 @@ class TelegramBot:
                                       f' {seconds} sekuntia',
                                  disable_notification=True)
         """
+        print("halo")
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=f'Wappu on joskus',
                                  disable_notification=True)
+        print("lol")
 
     @staticmethod
     def episode_ix(update: Update, context: CallbackContext):
