@@ -45,7 +45,9 @@ class TelegramBot:
                          'voivoi': self.voivoi,
                          'fiilis': self.getFiilis,
                          'viikonloppu': self.viikonloppu,
-                         'rudelf': self.rudelf
+                         'rudelf': self.rudelf,
+                         'skalja': self.skalja,
+                         'skredit': self.skredit
                          }
 
         for cmd, callback in self.commands.items():
@@ -368,6 +370,39 @@ class TelegramBot:
             msg = msg + " 😅"
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=msg, disable_notification=True)
+
+    def skredit(self, update: Update, context: CallbackContext):
+        r = regex.compile(r"\/skredit ([\+-])?(\d+,?\d*)")
+        m = r.match(update.message.text)
+        params = (update.message.from_user.id,)
+        res = get.dbQuery("SELECT name, credit FROM skredit WHERE id=?", params)
+        if m is None and len(res) != 0:
+            context.bot.send_message(text=f"{res[0][0]}: {res[0][1]}€", chat_id=update.message.chat_id)
+        elif m is None and len(res) == 0:
+            context.bot.send_message(text="Ei löydy. Kokeile uudestaa =)", chat_id=update.message.chat_id)
+        operator = "+"
+        if m.group(1) == "-":
+            operator = "-"
+        if len(res) != 0:
+            if operator == "+":
+                newCredit = float(res[0][1]) + float(m.group(2).replace(",", "."))
+            else:
+                newCredit = float(res[0][1]) - float(m.group(2).replace(",", "."))
+            params = (newCredit, update.message.from_user.id,)
+            sql = f"UPDATE skredit SET credit=? WHERE id=?"
+            get.dbInsertUpdate(sql, params)
+            context.bot.send_message(text=f"Uusi tasapaino:\n{res[0][0]}: {newCredit}", chat_id=update.message.chat_id)
+        else:
+            params = (update.message.from_user.id, update.message.from_user.username, m.group(2))
+            sql = f"INSERT INTO skredit VALUES (?,?,?)"
+            get.dbInsertUpdate(sql, params)
+            context.bot.send_message(text=f"Uusi tasapaino:\n{update.message.from_user.username}: {m.group(2)}")
+
+
+    def skalja(self, update: Update, context: CallbackContext):
+        r = regex.compile(r"\/skalja ([\+-])?(\d+,?\d*)")
+        m = r.match(update.message.text)
+        pass
 
 if __name__ == '__main__':
     TelegramBot()
