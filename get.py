@@ -66,6 +66,15 @@ def dbQuery(query, params=()):
     conn.close()
     return res
 
+
+def dbInsertUpdate(sql, params):
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+    cur.execute(sql, params)
+    conn.commit()
+    conn.close()
+
+
 def create_tables():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
@@ -81,6 +90,14 @@ def create_tables():
         "groupID" INT,
         PRIMARY KEY(quotee, quote, groupID)
         )
+        ''')
+    c.execute('''CREATE TABLE IF NOT EXISTS credits(
+        "treasury" TEXT,
+        "id" TEXT,
+        "username" TEXT,
+        "amount" REAL NOT NULL,
+        PRIMARY KEY(treasury, id)
+        );
         ''')
     conn.close()
 
