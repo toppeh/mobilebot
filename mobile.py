@@ -13,6 +13,7 @@ from telegram import TelegramError, ReplyKeyboardMarkup, ReplyKeyboardRemove, Up
 import random
 from time import time
 from weather import WeatherGod
+from sys import maxsize
 
 # hyviä ehdotuksia: krediitti ja vitsi
 class TelegramBot:
@@ -46,8 +47,8 @@ class TelegramBot:
                          'fiilis': self.getFiilis,
                          'viikonloppu': self.viikonloppu,
                          'rudelf': self.rudelf,
-                         'skalja': self.skalja,
-                         'skredit': self.skredit
+                         'skalja': self.credit,
+                         'skredit': self.credit
                          }
 
         for cmd, callback in self.commands.items():
@@ -371,38 +372,49 @@ class TelegramBot:
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=msg, disable_notification=True)
 
-    def skredit(self, update: Update, context: CallbackContext):
-        r = regex.compile(r"\/skredit ([\+-])?(\d+,?\d*)")
+    def credit(self, update: Update, context: CallbackContext):
+        r = regex.compile(r"\/(.+) ([\+-])?(\d+,?\d{0,2})")
         m = r.match(update.message.text)
-        params = (update.message.from_user.id,)
-        res = get.dbQuery("SELECT name, credit FROM skredit WHERE id=?", params)
+        if m is None:
+            treasury = update.message.text.partition(" ")[0][1:]
+            params = (treasury, update.message.from_user.id)
+        else:
+            params = (m.group(1), update.message.from_user.id)
+        res = get.dbQuery("SELECT username, amount FROM credits WHERE treasury=? AND id=?", params)
         if m is None and len(res) != 0:
             context.bot.send_message(text=f"{res[0][0]}: {res[0][1]}€", chat_id=update.message.chat_id)
         elif m is None and len(res) == 0:
-            context.bot.send_message(text="Ei löydy. Kokeile uudestaa =)", chat_id=update.message.chat_id)
+            context.bot.send_message(text="Ei löydy. Kannattaa lisätä krediittejä komennolla /skredit {määrä} =)", chat_id=update.message.chat_id)
         operator = "+"
-        if m.group(1) == "-":
+        if m.group(2) == "-":
             operator = "-"
         if len(res) != 0:
             if operator == "+":
-                newCredit = float(res[0][1]) + float(m.group(2).replace(",", "."))
+                newCredit = float(res[0][1]) + float(m.group(3).replace(",", "."))
             else:
-                newCredit = float(res[0][1]) - float(m.group(2).replace(",", "."))
-            params = (newCredit, update.message.from_user.id,)
-            sql = f"UPDATE skredit SET credit=? WHERE id=?"
+                newCredit = float(res[0][1]) - float(m.group(3).replace(",", "."))
+            if newCredit > maxsize or newCredit < -1 * maxsize:
+                context.bot.send_message(text="Ei onnistu, liian iso/pieni luku", chat_id=update.message.chat_id)
+                return
+            params = (newCredit, m.group(1), update.message.from_user.id,)
+            sql = f"UPDATE credits SET amount=? WHERE treasury=? AND id=?"
             get.dbInsertUpdate(sql, params)
-            context.bot.send_message(text=f"Uusi tasapaino:\n{res[0][0]}: {newCredit}", chat_id=update.message.chat_id)
+            context.bot.send_message(text=f"Uusi tasapaino:\n{res[0][0]}: {newCredit}€", chat_id=update.message.chat_id)
         else:
-            params = (update.message.from_user.id, update.message.from_user.username, m.group(2))
-            sql = f"INSERT INTO skredit VALUES (?,?,?)"
+            print(float(operator + m.group(3).replace(",", ".")))
+            params = (m.group(1), update.message.from_user.id, update.message.from_user.username,
+                      float(operator + m.group(3).replace(",", ".")))
+            sql = f"INSERT INTO credits VALUES (?,?,?,?)"
             get.dbInsertUpdate(sql, params)
-            context.bot.send_message(text=f"Uusi tasapaino:\n{update.message.from_user.username}: {m.group(2)}")
+            context.bot.send_message(text=f"Uusi tasapaino:\n{update.message.from_user.username}: {m.group(3)}€",
+                                     chat_id=update.message.chat_id)
 
 
     def skalja(self, update: Update, context: CallbackContext):
         r = regex.compile(r"\/skalja ([\+-])?(\d+,?\d*)")
         m = r.match(update.message.text)
         pass
+
 
 if __name__ == '__main__':
     TelegramBot()

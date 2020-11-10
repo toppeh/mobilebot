@@ -91,20 +91,14 @@ def create_tables():
         PRIMARY KEY(quotee, quote, groupID)
         )
         ''')
-    c.execute('''CREATE TABLE IF NOT EXISTS skredit(
+    c.execute('''CREATE TABLE IF NOT EXISTS credits(
+        "treasury" TEXT,
         "id" TEXT,
-        "name" TEXT,
-        "credit" REAL,
-        PRIMARY KEY(id)
+        "username" TEXT,
+        "amount" REAL NOT NULL,
+        PRIMARY KEY(treasury, id)
         );
         ''')
-    c.execute('''CREATE TABLE IF NOT EXISTS skalja (
-        "id" TEXT,
-        "name" TEXT,
-        "credit" REAL,
-        PRIMARY KEY (id)
-        );
-''')
     conn.close()
 
 def build_menu(buttons,
