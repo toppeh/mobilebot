@@ -52,12 +52,12 @@ rudismit = {"[hH]ai": "🦈",
             "[pP]aska": "💩",
             "tus": "tussu",
             "tys": "tyssy",
-            "b": "🅱",
+            "ksaa": "G"
+            "kalja": "🍺",
             "kuu": "Q",
             "ku": "Q",
             "pee": "B",
             "pe": "B",
-            "kalja": "🍺",
             "k": "G",
-            "ksaa": "G"
+            "b": "🅱",
             }
