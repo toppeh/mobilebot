@@ -373,7 +373,7 @@ class TelegramBot:
                                  text=msg, disable_notification=True)
 
     def credit(self, update: Update, context: CallbackContext):
-        r = regex.compile(r"\/(.+) ([\+-])?(\d+,?\d{0,2})")
+        r = regex.compile(r"\/(.+) ([\+-])?(\d+[\.,]?\d{0,2})")
         m = r.match(update.message.text)
         if m is None:
             treasury = update.message.text.partition(" ")[0][1:]
@@ -382,38 +382,33 @@ class TelegramBot:
             params = (m.group(1), update.message.from_user.id)
         res = get.dbQuery("SELECT username, amount FROM credits WHERE treasury=? AND id=?", params)
         if m is None and len(res) != 0:
-            context.bot.send_message(text=f"{res[0][0]}: {res[0][1]}€", chat_id=update.message.chat_id)
+            context.bot.send_message(text=f"{res[0][0]}: {get.centsToEuroStr(res[0][1])}€", chat_id=update.message.chat_id)
         elif m is None and len(res) == 0:
             context.bot.send_message(text="Ei löydy. Kannattaa lisätä krediittejä komennolla /skredit {määrä} =)", chat_id=update.message.chat_id)
         operator = "+"
         if m.group(2) == "-":
             operator = "-"
         if len(res) != 0:
-            if operator == "+":
-                newCredit = float(res[0][1]) + float(m.group(3).replace(",", "."))
-            else:
-                newCredit = float(res[0][1]) - float(m.group(3).replace(",", "."))
-            if newCredit > maxsize or newCredit < -1 * maxsize:
-                context.bot.send_message(text="Ei onnistu, liian iso/pieni luku", chat_id=update.message.chat_id)
+            try:
+                diff = int(float(operator + m.group(3).replace(",", "."))*100)
+            except ValueError:
+                diff = int(float(operator + m.group(3).replace(",", ".").partition(".")[0]) * 100)
+
+            if abs(res[0][1] + diff) > maxsize:
+                context.bot.send_message(text="Ei onnistu, lopputulos on liian iso/pieni luku", chat_id=update.message.chat_id)
                 return
-            params = (newCredit, m.group(1), update.message.from_user.id,)
+            params = (res[0][1]+diff, m.group(1), update.message.from_user.id,)
             sql = f"UPDATE credits SET amount=? WHERE treasury=? AND id=?"
             get.dbInsertUpdate(sql, params)
-            context.bot.send_message(text=f"Uusi tasapaino:\n{res[0][0]}: {newCredit}€", chat_id=update.message.chat_id)
+            context.bot.send_message(text=f"Uusi tasapaino:\n{res[0][0]}: {get.centsToEuroStr(res[0][1]+diff)}€", chat_id=update.message.chat_id)
         else:
-            print(float(operator + m.group(3).replace(",", ".")))
+            amount = int(float(operator + m.group(3).replace(",", "."))*100)
             params = (m.group(1), update.message.from_user.id, update.message.from_user.username,
-                      float(operator + m.group(3).replace(",", ".")))
+                      amount)
             sql = f"INSERT INTO credits VALUES (?,?,?,?)"
             get.dbInsertUpdate(sql, params)
-            context.bot.send_message(text=f"Uusi tasapaino:\n{update.message.from_user.username}: {m.group(3)}€",
+            context.bot.send_message(text=f"Uusi tasapaino:\n{update.message.from_user.username}: {get.centsToEuroStr(amount)}€",
                                      chat_id=update.message.chat_id)
-
-
-    def skalja(self, update: Update, context: CallbackContext):
-        r = regex.compile(r"\/skalja ([\+-])?(\d+,?\d*)")
-        m = r.match(update.message.text)
-        pass
 
 
 if __name__ == '__main__':
