@@ -95,11 +95,12 @@ def create_tables():
         "treasury" TEXT,
         "id" TEXT,
         "username" TEXT,
-        "amount" REAL NOT NULL,
+        "amount" INT,
         PRIMARY KEY(treasury, id)
         );
         ''')
     conn.close()
+
 
 def build_menu(buttons,
                n_cols,
@@ -112,3 +113,14 @@ def build_menu(buttons,
         menu.append([footer_buttons])
     return menu
 
+def centsToEuroStr(amount: int):
+    if amount >= 0:
+        euros = amount // 100
+        cents = amount - euros * 100
+        ret = f"{euros},{cents}"
+        return ret
+    else:
+        euros = (-1 * amount) // 100
+        cents = (-1 * amount) - euros * 100
+        ret = f"-{euros},{cents}"
+        return ret
