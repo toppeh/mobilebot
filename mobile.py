@@ -237,7 +237,7 @@ class TelegramBot:
         else:
             context.bot.send_message(chat_id=update.message.chat_id, text="Value of content: Nousussa")
 
-    def voc_check(self, update: Update, context: CallbackContext):
+    def voc_check(self, update: Update):
         now = time()
         while len(self.voc_cmd) > 0:
             if now - self.voc_cmd[0] > 7200:
@@ -383,8 +383,10 @@ class TelegramBot:
         res = get.dbQuery("SELECT username, amount FROM credits WHERE treasury=? AND id=?", params)
         if m is None and len(res) != 0:
             context.bot.send_message(text=f"{res[0][0]}: {get.centsToEuroStr(res[0][1])}€", chat_id=update.message.chat_id)
+            return
         elif m is None and len(res) == 0:
             context.bot.send_message(text="Ei löydy. Kannattaa lisätä krediittejä komennolla /skredit {määrä} =)", chat_id=update.message.chat_id)
+            return
         operator = "+"
         if m.group(2) == "-":
             operator = "-"
@@ -409,7 +411,7 @@ class TelegramBot:
             get.dbInsertUpdate(sql, params)
             context.bot.send_message(text=f"Uusi tasapaino:\n{update.message.from_user.username}: {get.centsToEuroStr(amount)}€",
                                      chat_id=update.message.chat_id)
-
+            return
 
 if __name__ == '__main__':
     TelegramBot()
