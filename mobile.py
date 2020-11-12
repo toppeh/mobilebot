@@ -321,7 +321,7 @@ class TelegramBot:
     def huuto(self, update: Update, context: CallbackContext):
         rng = random.randint(0, 99)
         r = regex.compile(r"^(?![\W])[^[:lower:]]+$")
-        self.voc_add(update)
+        #self.voc_add(update)
         self.leffaReply(update, context)
         if rng >= len(stuff.message) or not r.match(update.message.text):
             return
