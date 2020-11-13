@@ -17,7 +17,7 @@ def generateKeyboard():
     for child in root:
         for i in child:
             if i.tag == "Title":
-               keyboard.append(KeyboardButton(i.text))
+                keyboard.append(KeyboardButton(i.text))
     return keyboard
 
 
@@ -29,8 +29,6 @@ def getMovie(name):
     movieFound = False
     for child in root:
         for i in child:
-            debug = i.tag
-            debug2 = i.text
             if i.tag == "Title" and i.text == name:
                 movieFound = True
             if i.tag == "dtLocalRelease" and movieFound:
