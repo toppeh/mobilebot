@@ -19,7 +19,7 @@ from sys import maxsize
 class TelegramBot:
     def __init__(self):
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
-                            '%(message)s', filemode='w', level=logging.WARNING)
+                                                          '%(message)s', filemode='w', level=logging.WARNING)
 
         updater = Updater(token=config.TOKEN, use_context=True)
         dispatcher = updater.dispatcher
@@ -37,8 +37,6 @@ class TelegramBot:
                          'saa': self.weather,
                          #'sää': self.weather,
                          'kuka': self.kuka,
-                         'value_of_content': self.voc,
-                         'voc': self.voc,
                          'cocktail': self.cocktail,
                          'episode_ix': self.episode_ix,
                          'kick': self.kick,
@@ -58,16 +56,10 @@ class TelegramBot:
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
         # TODO: Tee textHandler niminen funktio mikä on sama kuin commandsHandler mutta tekstille
-        # TODO: Ota voc_add pois huuto():sta :DDD
-        # TODO: Tee filtterit niin, että gifit ja kuvat kasvattaa self.voc_msg:eä
-
-        dispatcher.job_queue.run_repeating(self.voc_check, interval=60, first=5)
 
         self.noCooldown = (self.quoteadd, self.leffa, self.kick)
 
         self.users = {}  # user_id : unix timestamp
-        self.voc_cmd = list()
-        self.voc_msg = list()
         get.create_tables()
         updater.start_polling()
         # updater.idle()
@@ -185,8 +177,8 @@ class TelegramBot:
         else:
             name = update.message.text[space + 1:]
             quotes = get.dbQuery("""SELECT * FROM quotes WHERE LOWER(quotee)=? AND groupID=? ORDER BY RANDOM() LIMIT 1""",
-                      (name.lower(),
-                       update.message.chat_id))
+                                 (name.lower(),
+                                  update.message.chat_id))
             if len(quotes) == 0:
                 context.bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
                 return
@@ -209,11 +201,11 @@ class TelegramBot:
             city = update.message.text[5:]
             weather = WeatherGod()
             context.bot.send_message(chat_id=update.message.chat_id,
-                             text=weather.generateWeatherReport(city))
+                                     text=weather.generateWeatherReport(city))
         except AttributeError:
             context.bot.send_message(chat_id=update.message.chat_id,
-                             text="Komento vaatii parametrin >KAUPUNKI< \n"
-                                  "Esim: /saa Hervanta ")
+                                     text="Komento vaatii parametrin >KAUPUNKI< \n"
+                                          "Esim: /saa Hervanta ")
             return
 
     @staticmethod
@@ -221,7 +213,7 @@ class TelegramBot:
         try:
             context.bot.kickChatMember(update.message.chat.id, update.message.from_user.id)
             context.job_queue.run_once(TelegramBot.invite, 60, context=[update.message.chat_id, update.message.from_user.id,
-                               update.message.chat.invite_link])
+                                                                        update.message.chat.invite_link])
         except TelegramError:
             context.bot.send_message(chat_id=update.message.chat_id, text="Vielä joku päivä...")
 
@@ -230,48 +222,6 @@ class TelegramBot:
         job = context.job
         context.bot.unBanChatMember(chat_id=job.context[0], user_id=job.context[1])
         context.bot.send_message(chat_id=job.context[1], text=job.context[2])
-
-    def voc(self, update: Update, context: CallbackContext):
-        if self.voc_calc():
-            context.bot.send_message(chat_id=update.message.chat_id, text="Value of content: Laskussa")
-        else:
-            context.bot.send_message(chat_id=update.message.chat_id, text="Value of content: Nousussa")
-
-    def voc_check(self, update: Update):
-        now = time()
-        while len(self.voc_cmd) > 0:
-            if now - self.voc_cmd[0] > 7200:
-                self.voc_cmd.pop(0)
-            else:
-                break
-        while len(self.voc_msg) > 0:
-            if now - self.voc_msg[0] > 7200:
-                self.voc_msg.pop(0)
-            else:
-                return
-
-    def voc_add(self, update: Update):
-        if update.message.entities is None:
-            self.voc_msg.append(time())
-        for i in update.message.entities:
-            if i.type == 'bot_command':
-                self.voc_cmd.append(time())
-            else:
-                self.voc_msg.append(time())
-
-    def voc_calc(self):
-        now = time()
-        cmds = 0
-        for i in self.voc_cmd:
-            if now - i < 900:
-                cmds += 4
-            elif 900 < now - i < 1800:
-                cmds += 2
-            else:
-                cmds += 1
-        msgs = 2 * len(self.voc_msg)
-        # Minus 4 so that we dont count the calling /voc
-        return cmds - 4 > msgs
 
     @staticmethod
     def cocktail(update: Update, context: CallbackContext):
@@ -321,11 +271,9 @@ class TelegramBot:
     def huuto(self, update: Update, context: CallbackContext):
         rng = random.randint(0, 99)
         r = regex.compile(r"^(?![\W])[^[:lower:]]+$")
-        #self.voc_add(update)
         self.leffaReply(update, context)
         if rng >= len(stuff.message) or not r.match(update.message.text):
             return
-
         context.bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng], disable_notification=True)
 
     @staticmethod
@@ -360,7 +308,8 @@ class TelegramBot:
                                  text=f'On viiiiiikonloppu! https://youtu.be/vkVidHRkF88',
                                  disable_notifications=True)
 
-    def rudelf(self, update: Update, context: CallbackContext):
+    @staticmethod
+    def rudelf(update: Update, context: CallbackContext):
         if update.message.reply_to_message is False or update.message.reply_to_message.text is None:
             return
         # Capitalize
@@ -372,7 +321,8 @@ class TelegramBot:
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=msg, disable_notification=True)
 
-    def credit(self, update: Update, context: CallbackContext):
+    @staticmethod
+    def credit(update: Update, context: CallbackContext):
         r = regex.compile(r"\/(.+) ([\+-])?(\d+[\.,]?\d{0,2})")
         m = r.match(update.message.text)
         if m is None:
