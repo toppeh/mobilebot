@@ -48,7 +48,8 @@ class TelegramBot:
                          'viikonloppu': self.viikonloppu,
                          'rudelf': self.rudelf,
                          'skalja': self.credit,
-                         'skredit': self.credit
+                         'skredit': self.credit,
+                         'hyvaajouluaturvemestari': self.hyvaajoulua
                          }
 
         for cmd, callback in self.commands.items():
@@ -412,6 +413,14 @@ class TelegramBot:
             context.bot.send_message(text=f"Uusi tasapaino:\n{update.message.from_user.username}: {get.centsToEuroStr(amount)}€",
                                      chat_id=update.message.chat_id)
             return
+
+
+    def hyvaajoulua(self, update: Update, context: CallbackContext):
+        context.bot.send_message(chat_id=update.message.chat_id,
+                                    text=f'Kiitos :) ! Hyvää joulua myös sinulle {update.message.from_user.first_name}!',
+                                    disable_notifications=True)
+
+
 
 if __name__ == '__main__':
     TelegramBot()
