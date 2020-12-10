@@ -15,6 +15,7 @@ from time import time
 from weather import WeatherGod
 from sys import maxsize
 
+
 # hyviä ehdotuksia: krediitti ja vitsi
 class TelegramBot:
     def __init__(self):
@@ -23,6 +24,7 @@ class TelegramBot:
 
         updater = Updater(token=config.TOKEN, use_context=True)
         dispatcher = updater.dispatcher
+        
 
         self.commands = {'wabu': self.wabu,
                          'kiitos': self.kiitos,
@@ -49,7 +51,8 @@ class TelegramBot:
                          'rudelf': self.rudelf,
                          'skalja': self.credit,
                          'skredit': self.credit,
-                         'hyvaajouluaturvemestari': self.hyvaajoulua
+                         'hyvaajouluaturvemestari': self.hyvaajoulua,
+                         'kissa': self.kissa
                          }
 
         for cmd, callback in self.commands.items():
@@ -62,10 +65,11 @@ class TelegramBot:
         # TODO: Ota voc_add pois huuto():sta :DDD
         # TODO: Tee filtterit niin, että gifit ja kuvat kasvattaa self.voc_msg:eä
 
+        self.kissaCache = []
         dispatcher.job_queue.run_repeating(self.voc_check, interval=60, first=5)
+        dispatcher.job_queue.run_repeating(self.refreshCache, interval=60, first=5)
 
         self.noCooldown = (self.quoteadd, self.leffa, self.kick)
-
         self.users = {}  # user_id : unix timestamp
         self.voc_cmd = list()
         self.voc_msg = list()
@@ -73,6 +77,12 @@ class TelegramBot:
         updater.start_polling()
         # updater.idle()
         logging.info('Botti käynnistetty')
+
+    def refreshCache(self, update: Update):
+        while len(self.kissaCache) < 10:
+            url = get.cat()
+            self.kissaCache.append(url)
+
 
     @staticmethod
     def wabu(update: Update, context: CallbackContext):
@@ -420,6 +430,17 @@ class TelegramBot:
                                     text=f'Kiitos :) ! Hyvää joulua myös sinulle {update.message.from_user.first_name}!',
                                     disable_notifications=True)
 
+
+    def kissa(self, update: Update, context: CallbackContext):
+        print(self.kissaCache) # debug
+
+        if len(self.kissaCache) > 0:
+            kissa_url = self.kissaCache[0]
+            self.kissaCache = self.kissaCache[1:]
+        else:
+            kissa_url = get.cat()
+
+        context.bot.send_animation(chat_id=update.message.chat_id, animation=kissa_url)
 
 
 if __name__ == '__main__':

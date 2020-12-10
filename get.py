@@ -124,3 +124,8 @@ def centsToEuroStr(amount: int):
         cents = (-1 * amount) - euros * 100
         ret = f"-{euros},{cents}"
         return ret
+
+def cat():
+    rnd = str(random.randint(0,99999))
+    r = requests.get('https://thecatapi.com/api/images/get?format=src&type=gif&timestamp=' + rnd)
+    return r.url
