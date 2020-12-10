@@ -432,8 +432,6 @@ class TelegramBot:
 
 
     def kissa(self, update: Update, context: CallbackContext):
-        print(self.kissaCache) # debug
-
         if len(self.kissaCache) > 0:
             kissa_url = self.kissaCache[0]
             self.kissaCache = self.kissaCache[1:]
