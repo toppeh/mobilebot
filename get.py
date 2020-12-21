@@ -1,5 +1,6 @@
 import requests
 import xml.etree.ElementTree as ET
+import json
 from telegram import KeyboardButton
 import regex
 import random
@@ -129,3 +130,14 @@ def cat():
     rnd = str(random.randint(0,99999))
     r = requests.get('https://thecatapi.com/api/images/get?format=src&type=gif&timestamp=' + rnd)
     return r.url
+
+
+def joke():
+    try:
+        res = requests.get("https://official-joke-api.appspot.com/jokes/random")
+        joke = json.loads(res.text)
+        return joke
+    except requests.RequestException:
+        return None
+    except json.decoder.JSONDecodeError:
+        return None

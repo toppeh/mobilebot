@@ -52,7 +52,8 @@ class TelegramBot:
                          'skalja': self.credit,
                          'skredit': self.credit,
                          'hyvaajouluaturvemestari': self.hyvaajoulua,
-                         'kissa': self.kissa
+                         'kissa': self.kissa,
+                         'joke': self.joke
                          }
 
         for cmd, callback in self.commands.items():
@@ -446,5 +447,14 @@ class TelegramBot:
         for key, val in stuff.rudismit.items():
             self.regex["rudismit"][regex.compile(key)] = val
 
+    def joke(self, update: Update, context: CallbackContext):
+        joke = get.joke()
+        if joke is None:
+            context.bot.send_message(chat_id=update.message.chat_id, text="Tapahtui virhe")
+        else:
+            msg = f'{joke["setup"]}\n.\n.\n.\n{joke["punchline"]}'
+            context.bot.send_message(chat_id=update.message.chat_id, text=msg, disable_notification=True)
+
+            
 if __name__ == '__main__':
     TelegramBot()
