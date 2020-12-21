@@ -52,7 +52,8 @@ class TelegramBot:
                          'skalja': self.credit,
                          'skredit': self.credit,
                          'hyvaajouluaturvemestari': self.hyvaajoulua,
-                         'kissa': self.kissa
+                         'kissa': self.kissa,
+                         'joke': self.joke
                          }
 
         for cmd, callback in self.commands.items():
@@ -439,6 +440,14 @@ class TelegramBot:
             kissa_url = get.cat()
 
         context.bot.send_animation(chat_id=update.message.chat_id, animation=kissa_url)
+
+    def joke(self, update: Update, context: CallbackContext):
+        joke = get.joke()
+        if joke is None:
+            context.bot.send_message(chat_id=update.message.chat_id, text="Tapahtui virhe")
+        else:
+            msg = f'{joke["setup"]}\n.\n.\n.\n{joke["punchline"]}'
+            context.bot.send_message(chat_id=update.message.chat_id, text=msg, disable_notification=True)
 
 
 if __name__ == '__main__':
