@@ -74,6 +74,8 @@ class TelegramBot:
         self.users = {}  # user_id : unix timestamp
         self.voc_cmd = list()
         self.voc_msg = list()
+        self.regex = dict()
+        self.regexInit()
         get.create_tables()
         updater.start_polling()
         # updater.idle()
@@ -160,10 +162,8 @@ class TelegramBot:
         except KeyError:
             return False
 
-    @staticmethod
-    def quoteadd(update: Update, context: CallbackContext):
-        r = regex.compile(r'\/quoteadd (.[^\s]+) (.+)')
-        match = r.match(update.message.text)
+    def quoteadd(self, update: Update, context: CallbackContext):
+        match = self.regex["quoteadd"].match(update.message.text)
         if match:
             temp = (match[1], match[2], update.message.chat_id)
             # tarkasta onko sitaatti jo lisätty joskus aiemmin
@@ -332,10 +332,9 @@ class TelegramBot:
 
     def huuto(self, update: Update, context: CallbackContext):
         rng = random.randint(0, 99)
-        r = regex.compile(r"^(?![\W])[^[:lower:]]+$")
         #self.voc_add(update)
         self.leffaReply(update, context)
-        if rng >= len(stuff.message) or not r.match(update.message.text):
+        if rng >= len(stuff.message) or not self.regex["huuto"].match(update.message.text):
             return
 
         context.bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng], disable_notification=True)
@@ -377,16 +376,15 @@ class TelegramBot:
             return
         # Capitalize
         msg = update.message.reply_to_message.text[0].upper() + update.message.reply_to_message.text[1:]
-        for key, val in stuff.rudismit.items():
-            msg = regex.sub(regex.compile(key), val, msg)
+        for key, val in self.regex["rudismit"].items():
+            msg = regex.sub(key, val, msg)
         if random.randint(0,9) < 3:
             msg = msg + " 😅"
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=msg, disable_notification=True)
 
     def credit(self, update: Update, context: CallbackContext):
-        r = regex.compile(r"\/(.+) ([\+-])?(\d+[\.,]?\d{0,2})")
-        m = r.match(update.message.text)
+        m = self.regex["credit"].match(update.message.text)
         if m is None:
             treasury = update.message.text.partition(" ")[0][1:]
             params = (treasury, update.message.from_user.id)
@@ -441,6 +439,14 @@ class TelegramBot:
 
         context.bot.send_animation(chat_id=update.message.chat_id, animation=kissa_url)
 
+    def regexInit(self):
+        self.regex["quoteadd"] = regex.compile(r'\/quoteadd (.[^\s]+) (.+)')
+        self.regex["huuto"] = regex.compile(r"^(?![\W])[^[:lower:]]+$")
+        self.regex["credit"] = regex.compile(r"\/(.+) ([\+-])?(\d+[\.,]?\d{0,2})")
+        self.regex["rudismit"] = dict()
+        for key, val in stuff.rudismit.items():
+            self.regex["rudismit"][regex.compile(key)] = val
+
     def joke(self, update: Update, context: CallbackContext):
         joke = get.joke()
         if joke is None:
@@ -449,6 +455,6 @@ class TelegramBot:
             msg = f'{joke["setup"]}\n.\n.\n.\n{joke["punchline"]}'
             context.bot.send_message(chat_id=update.message.chat_id, text=msg, disable_notification=True)
 
-
+            
 if __name__ == '__main__':
     TelegramBot()
