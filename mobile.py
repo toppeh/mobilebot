@@ -52,6 +52,7 @@ class TelegramBot:
                          'skalja': self.credit,
                          'skredit': self.credit,
                          'hyvaajouluaturvemestari': self.hyvaajoulua,
+                         'hyvaajuhannusta': self.hyvaajussia,
                          'kissa': self.kissa,
                          'joke': self.joke
                          }
@@ -425,6 +426,11 @@ class TelegramBot:
 
 
     def hyvaajoulua(self, update: Update, context: CallbackContext):
+        context.bot.send_message(chat_id=update.message.chat_id,
+                                    text=f'Kiitos :) ! Hyvää joulua myös sinulle {update.message.from_user.first_name}!',
+                                    disable_notifications=True)
+
+    def hyvaajussia(self, update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=update.message.chat_id,
                                     text=f'Kiitos :) ! Hyvää joulua myös sinulle {update.message.from_user.first_name}!',
                                     disable_notifications=True)
