@@ -39,7 +39,7 @@ def getMovie(name):
     return "Ensi-iltaa ei löytynyt"
 
 
-def getImage():
+def getImage(re):
     rng = random.randint(0,1)
     if rng == 0:
         feeling = random.choice(feels) + "+" + random.choice(["man", "men", "woman", "women", "boy", "boys", "girl", "girls"])
@@ -47,7 +47,7 @@ def getImage():
     else:
         url = "https://www.shutterstock.com/fi/search/" + random.choice(emotions)
     res = requests.get(url, headers=ssHeaders, timeout=3)
-    re = regex.compile(r'src="(https://image.shutterstock.com/image-[(?:photo)(?:vector)]+/.+?)"')
+    # re = regex.compile(r'src="(https://image.shutterstock.com/image-[(?:photo)(?:vector)]+/.+?)"') 
     imageList = re.findall(res.text)
     if imageList:
         imgUrl = random.choice(imageList)

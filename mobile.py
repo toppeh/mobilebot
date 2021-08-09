@@ -47,6 +47,7 @@ class TelegramBot:
                          'leffa': self.leffa,
                          'voivoi': self.voivoi,
                          'fiilis': self.getFiilis,
+                         'arki': self.arki,
                          'viikonloppu': self.viikonloppu,
                          'rudelf': self.rudelf,
                          'skalja': self.credit,
@@ -60,9 +61,11 @@ class TelegramBot:
         for cmd, callback in self.commands.items():
             dispatcher.add_handler(PrefixHandler(['!', '.', '/'], cmd, callback))
             dispatcher.add_handler(CommandHandler(cmd, callback)) # ÄLÄ POISTA TAI KOMMENTOI
-
+        
+        dispatcher.add_handler(MessageHandler(Filters.photo, self.getFiilis))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
+
         # TODO: Tee textHandler niminen funktio mikä on sama kuin commandsHandler mutta tekstille
         # TODO: Ota voc_add pois huuto():sta :DDD
         # TODO: Tee filtterit niin, että gifit ja kuvat kasvattaa self.voc_msg:eä
@@ -358,9 +361,11 @@ class TelegramBot:
         reply_markup = ReplyKeyboardRemove()
         context.bot.send_message(chat_id=update.message.chat_id, text=f'Ensi-ilta on {premiere}', reply_markup=reply_markup)
 
-    @staticmethod
-    def getFiilis(update: Update, context: CallbackContext):
-        imgUrl = get.getImage()
+    def getFiilis(self, update: Update, context: CallbackContext):
+        print(update.message)
+        if (not update.message.caption or 'fiilis' not in update.message.caption):
+            return
+        imgUrl = get.getImage(self.regex["fiilis"])
         if imgUrl != "":
             context.bot.send_photo(chat_id=update.message.chat_id, photo=imgUrl)
         else:
@@ -371,6 +376,11 @@ class TelegramBot:
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=f'On viiiiiikonloppu! https://youtu.be/vkVidHRkF88',
                                  disable_notifications=True)
+
+    @staticmethod
+    def arki(update: Update, context: CallbackContext):
+      context.bot.send_message(chat_id=update.message.chat_id,
+                               text=f'https://open.spotify.com/track/6V2XKKilzsIcGAIsDhwEhF?si=eabb43bae9c446aa')
 
     def rudelf(self, update: Update, context: CallbackContext):
         if update.message.reply_to_message is False or update.message.reply_to_message.text is None:
@@ -432,7 +442,7 @@ class TelegramBot:
 
     def hyvaajussia(self, update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=update.message.chat_id,
-                                    text=f'Kiitos :) ! Hyvää joulua myös sinulle {update.message.from_user.first_name}!',
+                                    text=f'Kiitos :) ! Hyvää jussia myös sinulle {update.message.from_user.first_name}!',
                                     disable_notifications=True)
 
 
@@ -449,6 +459,7 @@ class TelegramBot:
         self.regex["quoteadd"] = regex.compile(r'\/quoteadd (.[^\s]+) (.+)')
         self.regex["huuto"] = regex.compile(r"^(?![\W])[^[:lower:]]+$")
         self.regex["credit"] = regex.compile(r"\/(.+) ([\+-])?(\d+[\.,]?\d{0,2})")
+        self.regex["fiilis"] = regex.compile(r'src="(https://image.shutterstock.com/image-[(?:photo)(?:vector)]+/.+?)"')
         self.regex["rudismit"] = dict()
         for key, val in stuff.rudismit.items():
             self.regex["rudismit"][regex.compile(key)] = val
@@ -458,7 +469,7 @@ class TelegramBot:
         if joke is None:
             context.bot.send_message(chat_id=update.message.chat_id, text="Tapahtui virhe")
         else:
-            msg = f'{joke["setup"]}\n.\n.\n.\n{joke["punchline"]}'
+            msg = f'{joke["setup"]}\n{joke["punchline"]}'
             context.bot.send_message(chat_id=update.message.chat_id, text=msg, disable_notification=True)
 
             
