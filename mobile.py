@@ -362,9 +362,11 @@ class TelegramBot:
         context.bot.send_message(chat_id=update.message.chat_id, text=f'Ensi-ilta on {premiere}', reply_markup=reply_markup)
 
     def getFiilis(self, update: Update, context: CallbackContext):
-        print(update.message)
-        if (not update.message.caption or 'fiilis' not in update.message.caption):
+        if (update.message.photo and not update.message.caption):
             return
+        elif update.message.photo and 'fiilis' not in update.message.caption:
+            return
+        print(update.message)
         imgUrl = get.getImage(self.regex["fiilis"])
         if imgUrl != "":
             context.bot.send_photo(chat_id=update.message.chat_id, photo=imgUrl)
