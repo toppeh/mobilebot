@@ -8,8 +8,9 @@ from datetime import datetime
 import config
 import stuff
 import get
+import quiz
 from telegram.ext import Updater, MessageHandler, CommandHandler, Filters, PrefixHandler, CallbackContext
-from telegram import TelegramError, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import TelegramError, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, Poll
 import random
 from time import time
 from weather import WeatherGod
@@ -56,7 +57,8 @@ class TelegramBot:
                          'hyvaajuhannusta': self.hyvaajussia,
                          'kissa': self.kissa,
                          'joke': self.joke,
-                         'xkcd': self.xkcd
+                         'xkcd': self.xkcd,
+                         'visa': self.visa
                          }
 
         for cmd, callback in self.commands.items():
@@ -480,7 +482,11 @@ class TelegramBot:
       rnd = random.randint(1, max)
       imgUrl = get.getXkcd(rnd)
       context.bot.send_photo(chat_id=update.message.chat_id, photo=imgUrl)
-
+    
+    def visa(self, update: Update, context: CallbackContext):
+        visa = quiz.getQuizQuestion()
+        context.bot.send_poll(chat_id=update.message.chat_id, question=visa['question'], options=visa['all_answers'],
+                              correct_option_id=visa['correct_answer_index'], type=Poll.QUIZ, is_anonymous=False, open_period=600)
             
 if __name__ == '__main__':
     TelegramBot()
