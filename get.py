@@ -7,9 +7,11 @@ import random
 from stuff import feels, ssHeaders, emotions
 import sqlite3
 from config import DB_FILE
+import html.parser
 
 
 def generateKeyboard():
+    html_parser = html.parser.HTMLParser()
     events = "https://www.finnkino.fi/xml/Events/?listType=ComingSoon&includeVideos=false"
     s = requests.Session()
     res = s.get(events)
@@ -18,7 +20,7 @@ def generateKeyboard():
     for child in root:
         for i in child:
             if i.tag == "Title":
-               keyboard.append(KeyboardButton(i.text))
+                keyboard.append(KeyboardButton(i.text.replace('Ã¤', 'ä').replace('Ã¶', 'ö')))
     return keyboard
 
 
