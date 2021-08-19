@@ -123,6 +123,7 @@ class TelegramBot:
     @staticmethod
     def kiitos(update: Update, context: CallbackContext):
         if update.message.reply_to_message is not None:
+            get.kiitosCounter(update.message.reply_to_message.from_user.id)
             context.bot.send_message(chat_id=update.message.chat_id,
                                      text=f'Kiitos {update.message.reply_to_message.from_user.first_name}!',
                                      disable_notifications=True)

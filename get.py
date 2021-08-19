@@ -113,6 +113,11 @@ def create_tables():
         PRIMARY KEY(treasury, id)
         );
         ''')
+    c.execute('''CREATE TABLE IF NOT EXISTS kiitos(
+        "id" TEXT,
+        "count" INT,
+        PRIMARY KEY(id)
+    );''') # alettu träkkään 19.8.2021
     conn.close()
 
 
@@ -154,3 +159,15 @@ def joke():
         return None
     except json.decoder.JSONDecodeError:
         return None
+
+def kiitosCounter(id):
+    sqlSelect = "SELECT * FROM kiitos WHERE id=?;"
+    result = dbQuery(sqlSelect, (id,))
+    if len(result) == 0:
+        sql = "INSERT INTO kiitos VALUES (?,?);"
+        params = (id, 0)
+        dbInsertUpdate(sql, params)
+    else:
+        sql = "UPDATE kiitos SET count = count + 1 WHERE id=?;"
+        dbInsertUpdate(sql, (id,))
+    
