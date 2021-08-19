@@ -55,7 +55,8 @@ class TelegramBot:
                          'hyvaajouluaturvemestari': self.hyvaajoulua,
                          'hyvaajuhannusta': self.hyvaajussia,
                          'kissa': self.kissa,
-                         'joke': self.joke
+                         'joke': self.joke,
+                         'xkcd': self.xkcd
                          }
 
         for cmd, callback in self.commands.items():
@@ -473,6 +474,12 @@ class TelegramBot:
         else:
             msg = f'{joke["setup"]}\n{joke["punchline"]}'
             context.bot.send_message(chat_id=update.message.chat_id, text=msg, disable_notification=True)
+
+    def xkcd(self, update: Update, context: CallbackContext):
+      max = get.getNewestXkcd()
+      rnd = random.randint(1, max)
+      imgUrl = get.getXkcd(rnd)
+      context.bot.send_photo(chat_id=update.message.chat_id, photo=imgUrl)
 
             
 if __name__ == '__main__':

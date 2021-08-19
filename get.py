@@ -55,6 +55,17 @@ def getImage(re):
     else:
         return ""
 
+def getXkcd(number):
+  url = f'https://xkcd.com/{number}/info.0.json'
+  res = requests.get(url, timeout=3)
+  xkcd = json.loads(res.text)
+  return xkcd['img']
+
+def getNewestXkcd():
+  url = f'https://xkcd.com/info.0.json'
+  res = requests.get(url, timeout=3)
+  xkcd = json.loads(res.text)
+  return xkcd['num']
 
 def dbQuery(query, params=()):
     conn = sqlite3.connect(DB_FILE)
