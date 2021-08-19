@@ -165,9 +165,11 @@ def kiitosCounter(id):
     result = dbQuery(sqlSelect, (id,))
     if len(result) == 0:
         sql = "INSERT INTO kiitos VALUES (?,?);"
-        params = (id, 0)
+        params = (id, 1)
         dbInsertUpdate(sql, params)
+        return 1
     else:
         sql = "UPDATE kiitos SET count = count + 1 WHERE id=?;"
         dbInsertUpdate(sql, (id,))
+        return result[0][1] + 1 
     
