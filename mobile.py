@@ -198,7 +198,7 @@ class TelegramBot:
             quotes = get.dbQuery("SELECT * FROM quotes WHERE groupID=? ORDER BY RANDOM() LIMIT 1", (update.message.chat_id,))
             if len(quotes) == 0:
                 context.bot.send_message(chat_id=update.message.chat_id, text='Yhtään sitaattia ei ole lisätty.')
-
+                return
         else:
             name = update.message.text[space + 1:]
             quotes = get.dbQuery("""SELECT * FROM quotes WHERE LOWER(quotee)=? AND groupID=? ORDER BY RANDOM() LIMIT 1""",
