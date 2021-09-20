@@ -1,6 +1,6 @@
 import requests
 import json
-from random import randint
+from random import randint, shuffle
 import html.parser
 
 
@@ -20,6 +20,7 @@ def setAllAnswers(quiz):
   ret['all_answers'] = list()
   for answer in quiz['incorrect_answers']:
     ret['all_answers'].append(html_parser.unescape(answer))
+  shuffle(ret['all_answers']) # shuffle so if the answers are all numbers the correct one wont stand out 
   ret['all_answers'].insert(index, html_parser.unescape(quiz['correct_answer']))
   ret['correct_answer_index'] = index
   return ret
