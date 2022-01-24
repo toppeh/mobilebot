@@ -8,7 +8,7 @@ mixers = ('olutta', 'kiljua', 'glögiä', 'vettä', 'Coca-Colaa', 'energiajuomaa
 message = ["MITÄ??", "EIKU OLIN NUKKUMASSA", "OLITKOs VIELÄ NUKKUMASSA?", "MISSÄ??", "KUULUU HELVETIN HUONOSTI",
            "EI OLE EIKÄ TULE"]
 
-feels = ["scared", "angry", "sad", "happy", "disgusted", "suprised", "trustful", "anticipating"]
+feels = ["scared", "angry", "sad", "happy", "disgusted", "suprised", "trustful", "anticipating", "joyful", "anxious"]
 
 emotions = ['Absorbed', 'Antsy', 'Bonhomie', 'Abhorrence', 'Anxiety', 'Boredom', 'Acceptance', 'Apathetic', 'Bothered', 'Admiration', 'Apologetic', 'Bouncy', 'Adoration', 'Appalled', 'Brave', 'Adrift',
             'Appreciative', 'Breathless', 'Aching', 'Apprehensive', 'Brooding', 'Affection', 'Ardor', 'Bubbly', 'Afraid', 'Arousal', 'Buoyant', 'Agitated', 'Astonishment', 'Burning', 'Agony', 'Astounded',
@@ -40,9 +40,9 @@ emotions = ['Absorbed', 'Antsy', 'Bonhomie', 'Abhorrence', 'Anxiety', 'Boredom',
 
 ssHeaders = {"Host": "www.shutterstock.com",
              "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0",
-             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
              "Accept-Language": "en-GB,en;q=0.5",
-             "Accept-Encoding": "gzip, deflate, br",
+             "Accept-Encoding": "gzip, deflate",
              "DNT": "1",
              "Upgrade-Insecure-Requests": "1"}
 

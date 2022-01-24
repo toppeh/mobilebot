@@ -45,10 +45,11 @@ def getImage(re):
     rng = random.randint(0,1)
     if rng == 0:
         feeling = random.choice(feels) + "+" + random.choice(["man", "men", "woman", "women", "boy", "boys", "girl", "girls"])
-        url = "https://www.shutterstock.com/fi/search/"+feeling
+        url = "https://www.shutterstock.com/search/"+feeling
     else:
-        url = "https://www.shutterstock.com/fi/search/" + random.choice(emotions)
+        url = "https://www.shutterstock.com/search/" + random.choice(emotions)
     res = requests.get(url, headers=ssHeaders, timeout=3)
+    print(res.text)
     # re = regex.compile(r'src="(https://image.shutterstock.com/image-[(?:photo)(?:vector)]+/.+?)"') 
     imageList = re.findall(res.text)
     if imageList:
