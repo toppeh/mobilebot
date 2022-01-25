@@ -402,37 +402,42 @@ class TelegramBot:
 
     def credit(self, update: Update, context: CallbackContext):
         m = self.regex["credit"].match(update.message.text)
-        if m is None:
-            treasury = update.message.text.partition(" ")[0][1:]
-            params = (treasury, update.message.from_user.id)
-        else:
-            params = (m.group(1), update.message.from_user.id)
+        treasury = m.group(1)
+        params = (treasury, update.message.from_user.id)        
         res = get.dbQuery("SELECT username, amount FROM credits WHERE treasury=? AND id=?", params)
-        if m is None and len(res) != 0:
+        # Kerro käyttäjän saldo
+        if m.group(2) is None and len(res) != 0:
             context.bot.send_message(text=f"{res[0][0]}: {get.centsToEuroStr(res[0][1])}€", chat_id=update.message.chat_id)
             return
-        elif m is None and len(res) == 0:
+        # Kannasta ei löytynyt käyttäjää
+        elif m.group(2) is None and len(res) == 0:
             context.bot.send_message(text=f'Ei löydy. Kannattaa lisätä krediittejä komennolla /{treasury} {{määrä}} =)', chat_id=update.message.chat_id)
             return
-        operator = "+"
-        if m.group(2) == "-":
-            operator = "-"
+
+        input = m.group(2)
+        # Korjaa kirjoitusvirhe
+        if " " in m.group(2):
+            parted = m.group(2).partition(" ")
+            input = parted[0] + parted[2]
+
+        # Päivitä uuteen saldoon
         if len(res) != 0:
             try:
-                diff = int(float(operator + m.group(3).replace(",", "."))*100)
+                diff = int(float(input.replace(",", "."))*100)
             except ValueError:
-                diff = int(float(operator + m.group(3).replace(",", ".").partition(".")[0]) * 100)
+                diff = int(float(input.replace(",", ".").partition(".")[0]) * 100)
 
             if abs(res[0][1] + diff) > maxsize:
                 context.bot.send_message(text="Ei onnistu, lopputulos on liian iso/pieni luku", chat_id=update.message.chat_id)
                 return
-            params = (res[0][1]+diff, m.group(1), update.message.from_user.id,)
+            params = (res[0][1]+diff, treasury, update.message.from_user.id,)
             sql = f"UPDATE credits SET amount=? WHERE treasury=? AND id=?"
             get.dbInsertUpdate(sql, params)
             context.bot.send_message(text=f"Uusi tasapaino:\n{res[0][0]}: {get.centsToEuroStr(res[0][1]+diff)}€", chat_id=update.message.chat_id)
+        # Lisää uusi käyttäjä ja saldo
         else:
-            amount = int(float(operator + m.group(3).replace(",", "."))*100)
-            params = (m.group(1), update.message.from_user.id, update.message.from_user.username,
+            amount = int(float(input.replace(",", "."))*100)
+            params = (treasury, update.message.from_user.id, update.message.from_user.username,
                       amount)
             sql = f"INSERT INTO credits VALUES (?,?,?,?)"
             get.dbInsertUpdate(sql, params)
@@ -464,7 +469,7 @@ class TelegramBot:
     def regexInit(self):
         self.regex["quoteadd"] = regex.compile(r'\/quoteadd (.[^\s]+) (.+)')
         self.regex["huuto"] = regex.compile(r"^(?![\W])[^[:lower:]]+$")
-        self.regex["credit"] = regex.compile(r"\/([a-ö]+) ([\+-])?(\d+[\.,]?\d{0,2})")
+        self.regex["credit"] = regex.compile(r"\/(skalja|skredit) *(([\+-])? ?(\d+[\.,]?\d{0,2}))?")
         self.regex["fiilis"] = regex.compile(r'url":"(https:\/\/image.shutterstock.com\/image-[(?:photo)(?:vector)]+/.+?.jpg)"')
         self.regex["rudismit"] = dict()
         for key, val in stuff.rudismit.items():
