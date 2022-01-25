@@ -412,7 +412,7 @@ class TelegramBot:
             context.bot.send_message(text=f"{res[0][0]}: {get.centsToEuroStr(res[0][1])}€", chat_id=update.message.chat_id)
             return
         elif m is None and len(res) == 0:
-            context.bot.send_message(text="Ei löydy. Kannattaa lisätä krediittejä komennolla /skredit {määrä} =)", chat_id=update.message.chat_id)
+            context.bot.send_message(text=f'Ei löydy. Kannattaa lisätä krediittejä komennolla /{treasury} {{määrä}} =)', chat_id=update.message.chat_id)
             return
         operator = "+"
         if m.group(2) == "-":
@@ -464,7 +464,7 @@ class TelegramBot:
     def regexInit(self):
         self.regex["quoteadd"] = regex.compile(r'\/quoteadd (.[^\s]+) (.+)')
         self.regex["huuto"] = regex.compile(r"^(?![\W])[^[:lower:]]+$")
-        self.regex["credit"] = regex.compile(r"\/(.+) ([\+-])?(\d+[\.,]?\d{0,2})")
+        self.regex["credit"] = regex.compile(r"\/([a-ö]+) ([\+-])?(\d+[\.,]?\d{0,2})")
         self.regex["fiilis"] = regex.compile(r'url":"(https:\/\/image.shutterstock.com\/image-[(?:photo)(?:vector)]+/.+?.jpg)"')
         self.regex["rudismit"] = dict()
         for key, val in stuff.rudismit.items():
