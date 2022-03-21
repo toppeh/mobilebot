@@ -17,7 +17,7 @@ from weather import WeatherGod
 from sys import maxsize
 
 
-# TODO: fix leffa, cocktail, joulu, jussi
+# TODO: fix leffa
 class TelegramBot:
     def __init__(self):
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
@@ -346,16 +346,17 @@ class TelegramBot:
     @staticmethod
     def leffa(update: Update, context: CallbackContext):
         custom_keyboard = get.generateKeyboard()
-        reply_markup = ReplyKeyboardMarkup(get.build_menu(custom_keyboard, n_cols=2))
+        reply_markup = ReplyKeyboardMarkup(get.build_menu(custom_keyboard, n_cols=2), one_time_keyboard=True, selective=True)
         context.bot.send_message(chat_id=update.message.chat_id,
-                                 text="Leffoja",
+                                 text=f'Leffoja @{update.message.from_user.username}',
+                                 reply_to_message_id=update.message.message_id,
                                  reply_markup=reply_markup)
 
     @staticmethod
     def leffaReply(update: Update, context: CallbackContext):
         if update.message.reply_to_message is None:
             return
-        if update.message.reply_to_message.text != "Leffoja":
+        if "Leffoja" not in update.message.reply_to_message.text:
             return
         premiere = get.getMovie(update.message.text)
         reply_markup = ReplyKeyboardRemove()
