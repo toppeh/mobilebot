@@ -17,7 +17,7 @@ from weather import WeatherGod
 from sys import maxsize
 
 
-# TODO: fix leffa, cocktail, joulu, jussi, kick (bot.kick_chat_member -> bot.ban_chat_member)
+# TODO: fix leffa, cocktail, joulu, jussi
 class TelegramBot:
     def __init__(self):
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
