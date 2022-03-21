@@ -8,7 +8,7 @@ from stuff import feels, ssHeaders, emotions
 import sqlite3
 from config import DB_FILE
 import html.parser
-
+from datetime import datetime
 
 def generateKeyboard():
     html_parser = html.parser.HTMLParser()
@@ -37,7 +37,9 @@ def getMovie(name):
             if i.tag == "Title" and i.text == name:
                 movieFound = True
             if i.tag == "dtLocalRelease" and movieFound:
-                return i.text
+                print(i.text)
+                date = datetime.fromisoformat(i.text)
+                return date.strftime("%A %d. %B %Y")
     return "Ensi-iltaa ei löytynyt"
 
 

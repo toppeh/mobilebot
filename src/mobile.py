@@ -17,7 +17,7 @@ from weather import WeatherGod
 from sys import maxsize
 
 
-# hyviä ehdotuksia: krediitti ja vitsi
+# TODO: fix leffa
 class TelegramBot:
     def __init__(self):
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
@@ -26,7 +26,6 @@ class TelegramBot:
         updater = Updater(token=config.TOKEN, use_context=True)
         dispatcher = updater.dispatcher
         
-
         self.commands = {'wabu': self.wabu,
                          'kiitos': self.kiitos,
                          'sekseli': self.sekseli,
@@ -240,17 +239,13 @@ class TelegramBot:
     @staticmethod
     def kick(update: Update, context: CallbackContext):
         try:
-            context.bot.kickChatMember(update.message.chat.id, update.message.from_user.id)
-            context.job_queue.run_once(TelegramBot.invite, 60, context=[update.message.chat_id, update.message.from_user.id,
-                               update.message.chat.invite_link])
+            context.bot.banChatMember(chat_id=update.message.chat.id, user_id=update.message.from_user.id, until_date=time()+60, revoke_messages=False)
+            link = context.bot.createChatInviteLink(chat_id=update.message.chat_id, expire_date=time()+7200, member_limit=1)
+            if link:
+                invite = lambda context : context.bot.send_message(chat_id=context.job.context[0], text=f"{context.job.context[1]}, linkki vanhenee kahden tunnin päästä BEEP BOOP.")
+                context.job_queue.run_once(invite, 60, context=[update.message.from_user.id, link['invite_link']])
         except TelegramError:
             context.bot.send_message(chat_id=update.message.chat_id, text="Vielä joku päivä...")
-
-    @staticmethod
-    def invite(update: Update, context: CallbackContext):
-        job = context.job
-        context.bot.unBanChatMember(chat_id=job.context[0], user_id=job.context[1])
-        context.bot.send_message(chat_id=job.context[1], text=job.context[2])
 
     def voc(self, update: Update, context: CallbackContext):
         if self.voc_calc():
@@ -351,16 +346,17 @@ class TelegramBot:
     @staticmethod
     def leffa(update: Update, context: CallbackContext):
         custom_keyboard = get.generateKeyboard()
-        reply_markup = ReplyKeyboardMarkup(get.build_menu(custom_keyboard, n_cols=2))
+        reply_markup = ReplyKeyboardMarkup(get.build_menu(custom_keyboard, n_cols=2), one_time_keyboard=True, selective=True)
         context.bot.send_message(chat_id=update.message.chat_id,
-                                 text="Leffoja",
+                                 text=f'Leffoja @{update.message.from_user.username}',
+                                 reply_to_message_id=update.message.message_id,
                                  reply_markup=reply_markup)
 
     @staticmethod
     def leffaReply(update: Update, context: CallbackContext):
         if update.message.reply_to_message is None:
             return
-        if update.message.reply_to_message.text != "Leffoja":
+        if "Leffoja" not in update.message.reply_to_message.text:
             return
         premiere = get.getMovie(update.message.text)
         reply_markup = ReplyKeyboardRemove()
@@ -448,13 +444,11 @@ class TelegramBot:
 
     def hyvaajoulua(self, update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=update.message.chat_id,
-                                    text=f'Kiitos :) ! Hyvää joulua myös sinulle {update.message.from_user.first_name}!',
-                                    disable_notifications=True)
+                                    text=f'Kiitos :) ! Hyvää joulua myös sinulle {update.message.from_user.first_name}!')
 
     def hyvaajussia(self, update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=update.message.chat_id,
-                                    text=f'Kiitos :) ! Hyvää jussia myös sinulle {update.message.from_user.first_name}!',
-                                    disable_notifications=True)
+                                    text=f'Kiitos :) ! Hyvää jussia myös sinulle {update.message.from_user.first_name}!')
 
 
     def kissa(self, update: Update, context: CallbackContext):
