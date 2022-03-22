@@ -37,7 +37,6 @@ def getMovie(name):
             if i.tag == "Title" and i.text == name:
                 movieFound = True
             if i.tag == "dtLocalRelease" and movieFound:
-                print(i.text)
                 date = datetime.fromisoformat(i.text)
                 return date.strftime("%A %d. %B %Y")
     return "Ensi-iltaa ei löytynyt"
@@ -120,6 +119,12 @@ def create_tables():
         "count" INT,
         PRIMARY KEY(id)
     );''') # alettu träkkään 19.8.2021
+    c.execute('''CREATE TABLE IF NOT EXISTS visaAnswers(
+        "id" TEXT,
+        "correct" INT,
+        "false" INT,
+        PRIMARY KEY(id)
+    )''') # alettu träkkään 22.3.2022
     conn.close()
 
 
