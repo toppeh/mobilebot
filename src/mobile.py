@@ -9,7 +9,7 @@ import config
 import stuff
 import get
 import quiz
-from telegram.ext import Updater, MessageHandler, CommandHandler, Filters, PrefixHandler, CallbackContext
+from telegram.ext import Updater, MessageHandler, CommandHandler, Filters, PrefixHandler, CallbackContext, PollAnswerHandler
 from telegram import TelegramError, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, Poll
 import random
 from time import time
@@ -57,7 +57,9 @@ class TelegramBot:
                          'kissa': self.kissa,
                          'joke': self.joke,
                          'xkcd': self.xkcd,
-                         'visa': self.visa
+                         'visa': self.visa,
+                         'quiz': self.visa,
+                         'visastats': self.visastats
                          }
 
         for cmd, callback in self.commands.items():
@@ -67,6 +69,7 @@ class TelegramBot:
         dispatcher.add_handler(MessageHandler(Filters.photo, self.getFiilis))
         dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
+        dispatcher.add_handler(PollAnswerHandler(self.visaAnswer))
 
         # TODO: Tee textHandler niminen funktio mikä on sama kuin commandsHandler mutta tekstille
         # TODO: Ota voc_add pois huuto():sta :DDD
@@ -80,6 +83,7 @@ class TelegramBot:
         self.users = {}  # user_id : unix timestamp
         self.voc_cmd = list()
         self.voc_msg = list()
+        self.visas = dict()  # poll_id : correct answer
         self.regex = dict()
         self.regexInit()
         get.create_tables()
@@ -95,22 +99,22 @@ class TelegramBot:
 
     @staticmethod
     def wabu(update: Update, context: CallbackContext):
-        wabu = datetime(2021, 4, 15, 13)
+        wabu = datetime(2021, 4, 13, 13)
         tanaan = datetime.now()
         erotus = wabu - tanaan
         hours = erotus.seconds // 3600
         minutes = (erotus.seconds - hours*3600) // 60
         seconds = erotus.seconds - hours * 3600 - minutes * 60
-        """
+        
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja'
                                       f' {seconds} sekuntia',
                                  disable_notification=True)
-        """
-        context.bot.send_message(chat_id=update.message.chat_id,
+        
+        '''context.bot.send_message(chat_id=update.message.chat_id,
                                  text=f'Wappu on joskus',
                                  disable_notification=True)
-
+        '''
     @staticmethod
     def episode_ix(update: Update, context: CallbackContext):
         wabu = datetime(2019, 12, 20)
@@ -485,8 +489,29 @@ class TelegramBot:
     
     def visa(self, update: Update, context: CallbackContext):
         visa = quiz.getQuizQuestion()
-        context.bot.send_poll(chat_id=update.message.chat_id, question=visa['question'], options=visa['all_answers'],
-                              correct_option_id=visa['correct_answer_index'], type=Poll.QUIZ, is_anonymous=False, open_period=600)
-            
+        msg = context.bot.send_poll(chat_id=update.message.chat_id, question=visa['question'], options=visa['all_answers'],
+                              correct_option_id=visa['correct_answer_index'], type=Poll.QUIZ, is_anonymous=False)
+        if msg:
+            self.visas[msg.poll.id] = visa['correct_answer_index']
+            context.job_queue.run_once(self.endVisa, 86400, context=[msg.chat.id, msg.message_id, msg.poll.id])
+
+    def endVisa(self, context: CallbackContext):
+        del self.visas[context.job.context[2]]
+        poll = context.bot.stop_poll(chat_id=context.job.context[0], message_id=context.job.context[1])
+
+    def visaAnswer(self, update: Update, context: CallbackContext):
+        if update.poll_answer.poll_id in self.visas:
+            if update.poll_answer.option_ids[0] == self.visas[update.poll_answer.poll_id]:
+                quiz.answer(update.poll_answer.user.id, True)
+            else:
+                quiz.answer(update.poll_answer.user.id, False)
+
+    def visastats(self, update: Update, context: CallbackContext):
+        stats = quiz.stats(update.message.from_user.id)
+        if not stats:
+            context.bot.send_message(chat_id=update.message.chat_id, text="Et ole vielä vastannut yhteenkään kysymykseen :/")
+        stats = f"{update.message.from_user.first_name}" + stats
+        context.bot.send_message(chat_id=update.message.chat_id, text=stats)
+
 if __name__ == '__main__':
     TelegramBot()
