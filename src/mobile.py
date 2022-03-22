@@ -99,7 +99,7 @@ class TelegramBot:
 
     @staticmethod
     def wabu(update: Update, context: CallbackContext):
-        wabu = datetime(2021, 4, 13, 13)
+        wabu = datetime(2022, 4, 13, 13)
         tanaan = datetime.now()
         erotus = wabu - tanaan
         hours = erotus.seconds // 3600
