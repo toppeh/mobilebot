@@ -130,7 +130,7 @@ class TelegramBot:
             context.bot.send_message(chat_id=update.message.chat_id,
                                      text=f'Kiitos {update.message.reply_to_message.from_user.first_name}!\n'
                                      f'{update.message.reply_to_message.from_user.first_name} on saanut kiitoksen jo {count} kertaa!',
-                                     disable_notifications=True)
+                                     disable_notification=True)
         else:
             context.bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori!', disable_notification=True)
 
@@ -139,7 +139,7 @@ class TelegramBot:
         if update.message.reply_to_message is not None:
             context.bot.send_message(chat_id=update.message.chat_id,
                                      text=f'voi voi {update.message.reply_to_message.from_user.first_name}😩😩😩',
-                                     disable_notifications=True)
+                                     disable_notification=True)
         else:
             context.bot.send_message(chat_id=update.message.chat_id, text='voi voi Nuutti😩😩😩', disable_notification=True)
 
@@ -381,7 +381,7 @@ class TelegramBot:
     def viikonloppu(update: Update, context: CallbackContext):
         context.bot.send_message(chat_id=update.message.chat_id,
                                  text=f'On viiiiiikonloppu! https://youtu.be/vkVidHRkF88',
-                                 disable_notifications=True)
+                                 disable_notification=True)
 
     @staticmethod
     def arki(update: Update, context: CallbackContext):
