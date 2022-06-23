@@ -468,7 +468,7 @@ class TelegramBot:
         self.regex["quoteadd"] = regex.compile(r'\/quoteadd (.[^\s]+) (.+)')
         self.regex["huuto"] = regex.compile(r"^(?![\W])[^[:lower:]]+$")
         self.regex["credit"] = regex.compile(r"\/(skalja|skredit) *(([\+-])? ?(\d+[\.,]?\d{0,2}))?")
-        self.regex["fiilis"] = regex.compile(r'url":"(https:\/\/image.shutterstock.com\/image-[(?:photo)(?:vector)]+/.+?.jpg)"')
+        self.regex["fiilis"] = regex.compile(r'"(https:\/\/image.shutterstock.com\/image-[(?:photo)(?:vector)]+/.+?.jpg)"')
         self.regex["rudismit"] = dict()
         for key, val in stuff.rudismit.items():
             self.regex["rudismit"][regex.compile(key)] = val
