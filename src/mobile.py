@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-
 import regex
 import logging
 import sqlite3
-
 from datetime import datetime
 import config
 import stuff
@@ -27,7 +25,10 @@ from commands.kick import kick
 from commands.cocktail import cocktail
 from commands.leffa import leffa, leffaReply
 from commands.viikonloppu import viikonloppu, arki
-from commands.quote import quote
+from commands.quote import quote, quoteadd
+from commands.hyvaa import hyvaajoulua, hyvaajussia
+from commands.joke import joke
+from commands.xkcd import xkcd
 
 # TODO: fix leffa
 class TelegramBot:
@@ -43,9 +44,9 @@ class TelegramBot:
                          'sekseli': sekseli,
                          'poyta': poyta,
                          'insv': insv,
-                         'quoteadd': self.quoteadd,
-                         'addquote': self.quoteadd,
-                         'addq': self.quoteadd,
+                         'quoteadd': quoteadd,
+                         'addquote': quoteadd,
+                         'addq': quoteadd,
                          'quote': quote,
                          'viisaus': viisaus,
                          'saa': weather,
@@ -62,11 +63,11 @@ class TelegramBot:
                          'rudelf': self.rudelf,
                          'skalja': self.credit,
                          'skredit': self.credit,
-                         'hyvaajouluaturvemestari': self.hyvaajoulua,
-                         'hyvaajuhannusta': self.hyvaajussia,
+                         'hyvaajouluaturvemestari': hyvaajoulua,
+                         'hyvaajuhannusta': hyvaajussia,
                          'kissa': self.kissa,
-                         'joke': self.joke,
-                         'xkcd': self.xkcd,
+                         'joke': joke,
+                         'xkcd': xkcd,
                          'visa': self.visa,
                          'quiz': self.visa,
                          'visastats': self.visastats
@@ -178,7 +179,6 @@ class TelegramBot:
         leffaReply(update, context)
         if rng >= len(stuff.message) or not self.regex["huuto"].match(update.message.text):
             return
-
         context.bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng], disable_notification=True)
 
     def getFiilis(self, update: Update, context: CallbackContext):
@@ -249,16 +249,6 @@ class TelegramBot:
                                      chat_id=update.message.chat_id)
             return
 
-
-    def hyvaajoulua(self, update: Update, context: CallbackContext):
-        context.bot.send_message(chat_id=update.message.chat_id,
-                                    text=f'Kiitos :) ! Hyvää joulua myös sinulle {update.message.from_user.first_name}!')
-
-    def hyvaajussia(self, update: Update, context: CallbackContext):
-        context.bot.send_message(chat_id=update.message.chat_id,
-                                    text=f'Kiitos :) ! Hyvää jussia myös sinulle {update.message.from_user.first_name}!')
-
-
     def kissa(self, update: Update, context: CallbackContext):
         if len(self.kissaCache) > 0:
             kissa_url = self.kissaCache[0]
@@ -276,20 +266,6 @@ class TelegramBot:
         self.regex["rudismit"] = dict()
         for key, val in stuff.rudismit.items():
             self.regex["rudismit"][regex.compile(key)] = val
-
-    def joke(self, update: Update, context: CallbackContext):
-        joke = get.joke()
-        if joke is None:
-            context.bot.send_message(chat_id=update.message.chat_id, text="Tapahtui virhe")
-        else:
-            msg = f'{joke["setup"]}\n{joke["punchline"]}'
-            context.bot.send_message(chat_id=update.message.chat_id, text=msg, disable_notification=True)
-
-    def xkcd(self, update: Update, context: CallbackContext):
-      max = get.getNewestXkcd()
-      rnd = random.randint(1, max)
-      imgUrl = get.getXkcd(rnd)
-      context.bot.send_photo(chat_id=update.message.chat_id, photo=imgUrl)
     
     def visa(self, update: Update, context: CallbackContext):
         visa = quiz.getQuizQuestion()

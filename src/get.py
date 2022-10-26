@@ -64,7 +64,7 @@ def getXkcd(number):
   xkcd = json.loads(res.text)
   return xkcd['img']
 
-def getNewestXkcd():
+def getNewestXkcdNum():
   url = f'https://xkcd.com/info.0.json'
   res = requests.get(url, timeout=3)
   xkcd = json.loads(res.text)
@@ -157,7 +157,7 @@ def cat():
     return r.url
 
 
-def joke():
+def getJoke():
     try:
         res = requests.get("https://official-joke-api.appspot.com/jokes/random")
         joke = json.loads(res.text)
