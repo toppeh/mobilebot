@@ -34,6 +34,7 @@ class TelegramBot:
                          'insv': self.insv,
                          'quoteadd': self.quoteadd,
                          'addquote': self.quoteadd,
+                         'addq': self.quoteadd,
                          'quote': self.quote,
                          'viisaus': self.viisaus,
                          'saa': self.weather,
@@ -465,7 +466,7 @@ class TelegramBot:
         context.bot.send_animation(chat_id=update.message.chat_id, animation=kissa_url)
 
     def regexInit(self):
-        self.regex["quoteadd"] = regex.compile(r'\/quoteadd (.[^\s]+) (.+)')
+        self.regex["quoteadd"] = regex.compile(r'(?:\/quoteadd|\/addquote|\/addq) (.[^\s]+) (.+)')
         self.regex["huuto"] = regex.compile(r"^(?![\W])[^[:lower:]]+$")
         self.regex["credit"] = regex.compile(r"\/(skalja|skredit) *(([\+-])? ?(\d+[\.,]?\d{0,2}))?")
         self.regex["fiilis"] = regex.compile(r'"(https:\/\/image.shutterstock.com\/image-[(?:photo)(?:vector)]+/.+?.jpg)"')
