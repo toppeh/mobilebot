@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+from telegram.ext import CallbackContext
+from telegram import Update
 from config import DARKSKYTOKEN
 from geopy.geocoders import Nominatim
 import requests
@@ -29,19 +30,14 @@ class WeatherGod:
             f'\n\nTuleva viikko: {weatherDict["daily"]["summary"]}'
         return message
 
-
-
-
-
-
-
-
-# Uncomment the following for debugging
-
-# def main():
-#     weather = WeatherGod()
-#     print(weather.generateWeatherReport("Hervanta"))
-#
-#
-#
-# main()
+def weather(update: Update, context: CallbackContext):
+    try:
+        city = update.message.text[5:]
+        weather = WeatherGod()
+        context.bot.send_message(chat_id=update.message.chat_id,
+                             text=weather.generateWeatherReport(city))
+    except AttributeError:
+        context.bot.send_message(chat_id=update.message.chat_id,
+                             text="Komento vaatii parametrin >KAUPUNKI< \n"
+                                  "Esim: /saa Hervanta ")
+        return
