@@ -77,7 +77,6 @@ class TelegramBot:
             dispatcher.add_handler(CommandHandler(cmd, callback)) # ÄLÄ POISTA TAI KOMMENTOI
         
         dispatcher.add_handler(MessageHandler(Filters.photo, self.getFiilis))
-        dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
         dispatcher.add_handler(PollAnswerHandler(self.visaAnswer))
 
@@ -105,23 +104,6 @@ class TelegramBot:
         while len(self.kissaCache) < 10:
             url = get.cat()
             self.kissaCache.append(url)
-
-    @staticmethod
-    def pinned(update: Update, context: CallbackContext):
-        try:
-            if update.message.pinned_message:
-                if update.message.chat_id == config.MOBILE_ID:
-                    sql = "INSERT INTO pinned VALUES (?,?,?)"
-                    pinned = (update.message.date.isoformat(), update.message.pinned_message.from_user.username,
-                              update.message.pinned_message.text)
-                    conn = sqlite3.connect(config.DB_FILE)
-                    cur = conn.cursor()
-                    cur.execute(sql, pinned)
-                    conn.commit()
-                    conn.close()
-
-        except KeyError:
-            return False
 
     def quoteadd(self, update: Update, context: CallbackContext):
         match = self.regex["quoteadd"].match(update.message.text)
