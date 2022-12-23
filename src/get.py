@@ -4,11 +4,12 @@ import json
 from telegram import KeyboardButton
 import regex
 import random
-from stuff import feels, ssHeaders, emotions
+from stuff import feels, ssHeaders, emotions, regexes
 import sqlite3
 from config import DB_FILE
 import html.parser
 from datetime import datetime
+from config import SS_SUB_KEY
 
 def generateKeyboard():
     html_parser = html.parser.HTMLParser()
@@ -42,16 +43,34 @@ def getMovie(name):
     return "Ensi-iltaa ei löytynyt"
 
 
-def getImage(re):
+def getFiilis(re):
+    baseUrl = 'https://api.shutterstock.com/v2/images/search'
+    payload = dict()
+    head = {'Authorization': f'Bearer {SS_SUB_KEY}'}
+    print("headers:", head)
     rng = random.randint(0,1)
     if rng == 0:
-        feeling = random.choice(feels) + "+" + random.choice(["man", "men", "woman", "women", "boy", "boys", "girl", "girls"])
-        url = "https://www.shutterstock.com/search/"+feeling
+        payload['query'] = f'{random.choice(feels)} {random.choice(["man", "men", "woman", "women", "boy", "boys", "girl", "girls"])}'
     else:
-        url = "https://www.shutterstock.com/search/" + random.choice(emotions)
-    res = requests.get(url, headers=ssHeaders, timeout=3)
-    # re = regex.compile(r'src="(https://image.shutterstock.com/image-[(?:photo)(?:vector)]+/.+?)"') 
-    imageList = re.findall(res.text)
+        payload['query'] = random.choice(emotions)
+    payload['image_type'] = random.choice(['photo', 'vector', 'illustration'])
+    print("payload:", payload)
+    #res = requests.get(baseUrl, headers=head, params=payload, timeout=5)
+    res = requests.request('GET', baseUrl, headers=head, params=payload, timeout=5)
+
+    print("res.url", res.url)
+    #print(res.headers)
+    if res:
+        print(res)
+        print(res.url)
+    else:
+        print("no res", res)
+    return ""
+    imageList = regexes['fiilis2'].findall(res.text)
+    #imageList = re.findall(res.text)
+    print(imageList)
+    #print(res.text[50000:])
+    
     if imageList:
         imgUrl = random.choice(imageList)
         return imgUrl

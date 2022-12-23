@@ -29,8 +29,9 @@ from commands.quote import quote, quoteadd
 from commands.hyvaa import hyvaajoulua, hyvaajussia
 from commands.joke import joke
 from commands.xkcd import xkcd
+from commands.fiilis import fiilis
 
-# TODO: fix leffa
+# TODO: fix quoteadd ja fiili -> self.regex!!!
 class TelegramBot:
     def __init__(self):
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
@@ -57,7 +58,7 @@ class TelegramBot:
                          'kick': kick,
                          'leffa': leffa,
                          'voivoi': voivoi,
-                         'fiilis': self.getFiilis,
+                         'fiilis': fiilis,
                          'arki': arki,
                          'viikonloppu': viikonloppu,
                          'rudelf': self.rudelf,
@@ -77,7 +78,7 @@ class TelegramBot:
             dispatcher.add_handler(PrefixHandler(['!', '.', '/'], cmd, callback))
             dispatcher.add_handler(CommandHandler(cmd, callback)) # ÄLÄ POISTA TAI KOMMENTOI
         
-        dispatcher.add_handler(MessageHandler(Filters.photo, self.getFiilis))
+        dispatcher.add_handler(MessageHandler(Filters.photo, fiilis))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
         dispatcher.add_handler(PollAnswerHandler(self.visaAnswer))
 
@@ -89,13 +90,11 @@ class TelegramBot:
         dispatcher.job_queue.run_repeating(self.voc_check, interval=60, first=5)
         dispatcher.job_queue.run_repeating(self.refreshCache, interval=60, first=5)
 
-        self.noCooldown = (self.quoteadd, leffa, kick)
+        self.noCooldown = (quoteadd, leffa, kick)
         self.users = {}  # user_id : unix timestamp
         self.voc_cmd = list()
         self.voc_msg = list()
         self.visas = dict()  # poll_id : correct answer
-        self.regex = dict()
-        self.regexInit()
         get.create_tables()
         updater.start_polling()
         # updater.idle()
@@ -105,30 +104,6 @@ class TelegramBot:
         while len(self.kissaCache) < 10:
             url = get.cat()
             self.kissaCache.append(url)
-
-    def quoteadd(self, update: Update, context: CallbackContext):
-        match = self.regex["quoteadd"].match(update.message.text)
-        if match:
-            temp = (match[1], match[2], update.message.chat_id)
-            # tarkasta onko sitaatti jo lisätty joskus aiemmin
-            result = get.dbQuery("SELECT * FROM quotes WHERE quotee=? AND quote=? AND groupID=?", temp)
-            if len(result) != 0:
-                context.bot.send_message(chat_id=update.message.chat_id, text="Toi on jo niin kuultu...",
-                                         disable_notification=True)
-                return
-            quote = (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), match[1],
-                     match[2], update.message.from_user.username, update.message.chat_id)
-            conn = sqlite3.connect(config.DB_FILE)
-            cur = conn.cursor()
-            sql_insert = "INSERT INTO quotes VALUES (?,?,?,?,?)"
-            cur.execute(sql_insert, quote)
-            conn.commit()
-            conn.close()
-            context.bot.send_message(chat_id=update.message.chat_id, text="Sitaatti suhahti")
-        else:
-            context.bot.send_message(chat_id=update.message.chat_id,
-                                     text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
-                                          " <nimi> <sitaatti>)")
 
     def voc(self, update: Update, context: CallbackContext):
         if self.voc_calc():
@@ -177,27 +152,16 @@ class TelegramBot:
         rng = random.randint(0, 99)
         #self.voc_add(update)
         leffaReply(update, context)
-        if rng >= len(stuff.message) or not self.regex["huuto"].match(update.message.text):
+        if rng >= len(stuff.message) or not stuff.regexes["huuto"].match(update.message.text):
             return
         context.bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng], disable_notification=True)
-
-    def getFiilis(self, update: Update, context: CallbackContext):
-        if (update.message.photo and not update.message.caption):
-            return
-        elif update.message.photo and 'fiilis' not in update.message.caption:
-            return
-        imgUrl = get.getImage(self.regex["fiilis"])
-        if imgUrl != "":
-            context.bot.send_message(chat_id=update.message.chat_id, text=imgUrl)
-        else:
-            context.bot.send_message(chat_id=update.message.chat_id, text="Ei fiilistä")
 
     def rudelf(self, update: Update, context: CallbackContext):
         if update.message.reply_to_message is False or update.message.reply_to_message.text is None:
             return
         # Capitalize
         msg = update.message.reply_to_message.text[0].upper() + update.message.reply_to_message.text[1:]
-        for key, val in self.regex["rudismit"].items():
+        for key, val in stuff.regexes["rudismit"].items():
             msg = regex.sub(key, val, msg)
         if random.randint(0,9) < 3:
             msg = msg + " 😅"
@@ -205,7 +169,7 @@ class TelegramBot:
                                  text=msg, disable_notification=True)
 
     def credit(self, update: Update, context: CallbackContext):
-        m = self.regex["credit"].match(update.message.text)
+        m = stuff.regexes["credit"].match(update.message.text)
         treasury = m.group(1)
         params = (treasury, update.message.from_user.id)        
         res = get.dbQuery("SELECT username, amount FROM credits WHERE treasury=? AND id=?", params)
@@ -257,15 +221,6 @@ class TelegramBot:
             kissa_url = get.cat()
 
         context.bot.send_animation(chat_id=update.message.chat_id, animation=kissa_url)
-
-    def regexInit(self):
-        self.regex["quoteadd"] = regex.compile(r'(?:\/quoteadd|\/addquote|\/addq) (.[^\s]+) (.+)')
-        self.regex["huuto"] = regex.compile(r"^(?![\W])[^[:lower:]]+$")
-        self.regex["credit"] = regex.compile(r"\/(skalja|skredit) *(([\+-])? ?(\d+[\.,]?\d{0,2}))?")
-        self.regex["fiilis"] = regex.compile(r'"(https:\/\/image.shutterstock.com\/image-[(?:photo)(?:vector)]+/.+?.jpg)"')
-        self.regex["rudismit"] = dict()
-        for key, val in stuff.rudismit.items():
-            self.regex["rudismit"][regex.compile(key)] = val
     
     def visa(self, update: Update, context: CallbackContext):
         visa = quiz.getQuizQuestion()
