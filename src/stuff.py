@@ -69,8 +69,7 @@ regexes["huuto"] = regex.compile(r"^(?![\W])[^[:lower:]]+$")
 regexes["quoteadd"] = regex.compile(r'(?:\/quoteadd|\/addquote|\/addq) (.[^\s]+) (.+)')
 regexes["huuto"] = regex.compile(r"^(?![\W])[^[:lower:]]+$")
 regexes["credit"] = regex.compile(r"\/(skalja|skredit) *(([\+-])? ?(\d+[\.,]?\d{0,2}))?")
-regexes["fiilis"] = regex.compile(r'"(https:\/\/image.shutterstock.com\/image-[(?:photo)(?:vector)]+/.+?.jpg)"')
-regexes['fiilis2'] = regex.compile(r'href="(\/fi\/image-[(?:photo)(?:vector)]+\/.+?)"')
+regexes["fiilis"] = regex.compile(r'"src":"(https:\/\/www.shutterstock.com\/image-[(?:photo)(?:vector)]+\/.+?.jpg)"')
 regexes["rudismit"] = dict()
 for key, val in rudismit.items():
     regexes["rudismit"][regex.compile(key)] = val

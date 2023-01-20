@@ -8,7 +8,7 @@ def fiilis(update: Update, context: CallbackContext):
         return
     elif update.message.photo and 'fiilis' not in update.message.caption:
         return
-    imgUrl = getFiilis(regexes["fiilis2"])
+    imgUrl = getFiilis(regexes["fiilis"])
     if imgUrl != "":
         context.bot.send_message(chat_id=update.message.chat_id, text=imgUrl)
     else:
