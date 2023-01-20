@@ -10,6 +10,7 @@ def getQuizQuestion():
   response = requests.get(url, timeout=4)
   quiz = json.loads(response.text)
   quiz = setAllAnswers(quiz['results'][0])
+  print(quiz)
   return(quiz)
 
 def setAllAnswers(quiz):
@@ -17,8 +18,11 @@ def setAllAnswers(quiz):
   html_parser = html.parser.HTMLParser()
   index = randint(0, 3)
   ret = dict()
+  print("!!!")
   ret['question'] = html_parser.unescape(quiz['question'])
+  print("tänne ei päästä??")
   ret['all_answers'] = list()
+  print("????")
   for answer in quiz['incorrect_answers']:
     ret['all_answers'].append(html_parser.unescape(answer))
   shuffle(ret['all_answers']) # shuffle so if the answers are all numbers the correct one wont stand out 

@@ -3,6 +3,7 @@ from telegram import Update
 from datetime import datetime
 from get import dbQuery, dbInsertUpdate
 import config
+from stuff import regexes
 
 def quote(update: Update, context: CallbackContext):
     space = update.message.text.find(' ')
@@ -22,7 +23,7 @@ def quote(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][2]}" -{quotes[0][1]}')
 
 def quoteadd(update: Update, context: CallbackContext):
-    match = self.regex["quoteadd"].match(update.message.text)
+    match = regexes["quoteadd"].match(update.message.text)
     if match:
         temp = (match[1], match[2], update.message.chat_id)
         # tarkasta onko sitaatti jo lisätty joskus aiemmin

@@ -33,8 +33,6 @@ def getMovie(name):
     movieFound = False
     for child in root:
         for i in child:
-            debug = i.tag
-            debug2 = i.text
             if i.tag == "Title" and i.text == name:
                 movieFound = True
             if i.tag == "dtLocalRelease" and movieFound:

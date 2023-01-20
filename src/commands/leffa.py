@@ -17,4 +17,7 @@ def leffaReply(update: Update, context: CallbackContext):
         return
     premiere = getMovie(update.message.text)
     reply_markup = ReplyKeyboardRemove()
+    if premiere == 'Ensi-iltaa ei löytynyt':
+        context.bot.send_message(chat_id=update.message.chat_id, text=f'{premiere} :/', reply_markup=reply_markup)
+        return
     context.bot.send_message(chat_id=update.message.chat_id, text=f'Ensi-ilta on {premiere}', reply_markup=reply_markup)
