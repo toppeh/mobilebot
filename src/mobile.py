@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-
 import regex
 import logging
 import sqlite3
-
 from datetime import datetime
 import config
 import stuff
@@ -13,11 +11,27 @@ from telegram.ext import Updater, MessageHandler, CommandHandler, Filters, Prefi
 from telegram import TelegramError, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, Poll
 import random
 from time import time
-from weather import WeatherGod
+from commands.weather import weather
 from sys import maxsize
+from commands.wabu import wabu 
+from commands.kiitos import kiitos
+from commands.voivoi import voivoi
+from commands.viisaus import viisaus
+from commands.kuka import kuka
+from commands.sekseli import sekseli
+from commands.insv import insv
+from commands.poyta import poyta
+from commands.kick import kick
+from commands.cocktail import cocktail
+from commands.leffa import leffa, leffaReply
+from commands.viikonloppu import viikonloppu, arki
+from commands.quote import quote, quoteadd
+from commands.hyvaa import hyvaajoulua, hyvaajussia
+from commands.joke import joke
+from commands.xkcd import xkcd
+from commands.fiilis import fiilis
 
-
-# TODO: fix leffa
+# TODO: fix quoteadd ja fiili -> self.regex!!!
 class TelegramBot:
     def __init__(self):
         logging.basicConfig(filename='mobile.log', format='%(asctime)s - %(name)s - %(levelname)s - '
@@ -26,37 +40,35 @@ class TelegramBot:
         updater = Updater(token=config.TOKEN, use_context=True)
         dispatcher = updater.dispatcher
         
-        self.commands = {'wabu': self.wabu,
-                         'kiitos': self.kiitos,
-                         'sekseli': self.sekseli,
-                         'poyta': self.poyta,
-                         #'pöytä': self.poyta,
-                         'insv': self.insv,
-                         'quoteadd': self.quoteadd,
-                         'addquote': self.quoteadd,
-                         'quote': self.quote,
-                         'viisaus': self.viisaus,
-                         'saa': self.weather,
-                         #'sää': self.weather,
-                         'kuka': self.kuka,
+        self.commands = {'wabu': wabu,
+                         'kiitos': kiitos,
+                         'sekseli': sekseli,
+                         'poyta': poyta,
+                         'insv': insv,
+                         'quoteadd': quoteadd,
+                         'addquote': quoteadd,
+                         'addq': quoteadd,
+                         'quote': quote,
+                         'viisaus': viisaus,
+                         'saa': weather,
+                         'kuka': kuka,
                          'value_of_content': self.voc,
                          'voc': self.voc,
-                         'cocktail': self.cocktail,
-                         'episode_ix': self.episode_ix,
-                         'kick': self.kick,
-                         'leffa': self.leffa,
-                         'voivoi': self.voivoi,
-                         'fiilis': self.getFiilis,
-                         'arki': self.arki,
-                         'viikonloppu': self.viikonloppu,
+                         'cocktail': cocktail,
+                         'kick': kick,
+                         'leffa': leffa,
+                         'voivoi': voivoi,
+                         'fiilis': fiilis,
+                         'arki': arki,
+                         'viikonloppu': viikonloppu,
                          'rudelf': self.rudelf,
                          'skalja': self.credit,
                          'skredit': self.credit,
-                         'hyvaajouluaturvemestari': self.hyvaajoulua,
-                         'hyvaajuhannusta': self.hyvaajussia,
+                         'hyvaajouluaturvemestari': hyvaajoulua,
+                         'hyvaajuhannusta': hyvaajussia,
                          'kissa': self.kissa,
-                         'joke': self.joke,
-                         'xkcd': self.xkcd,
+                         'joke': joke,
+                         'xkcd': xkcd,
                          'visa': self.visa,
                          'quiz': self.visa,
                          'visastats': self.visastats
@@ -66,8 +78,7 @@ class TelegramBot:
             dispatcher.add_handler(PrefixHandler(['!', '.', '/'], cmd, callback))
             dispatcher.add_handler(CommandHandler(cmd, callback)) # ÄLÄ POISTA TAI KOMMENTOI
         
-        dispatcher.add_handler(MessageHandler(Filters.photo, self.getFiilis))
-        dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message, self.pinned))
+        dispatcher.add_handler(MessageHandler(Filters.photo, fiilis))
         dispatcher.add_handler(MessageHandler(Filters.text, self.huuto))
         dispatcher.add_handler(PollAnswerHandler(self.visaAnswer))
 
@@ -79,13 +90,11 @@ class TelegramBot:
         dispatcher.job_queue.run_repeating(self.voc_check, interval=60, first=5)
         dispatcher.job_queue.run_repeating(self.refreshCache, interval=60, first=5)
 
-        self.noCooldown = (self.quoteadd, self.leffa, self.kick)
+        self.noCooldown = (quoteadd, leffa, kick)
         self.users = {}  # user_id : unix timestamp
         self.voc_cmd = list()
         self.voc_msg = list()
         self.visas = dict()  # poll_id : correct answer
-        self.regex = dict()
-        self.regexInit()
         get.create_tables()
         updater.start_polling()
         # updater.idle()
@@ -95,161 +104,6 @@ class TelegramBot:
         while len(self.kissaCache) < 10:
             url = get.cat()
             self.kissaCache.append(url)
-
-
-    @staticmethod
-    def wabu(update: Update, context: CallbackContext):
-        wabu = datetime(2022, 4, 13, 13)
-        tanaan = datetime.now()
-        erotus = wabu - tanaan
-        hours = erotus.seconds // 3600
-        minutes = (erotus.seconds - hours*3600) // 60
-        seconds = erotus.seconds - hours * 3600 - minutes * 60
-        
-        context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f'Wabun alkuun on {erotus.days} päivää, {hours} tuntia, {minutes} minuuttia ja'
-                                      f' {seconds} sekuntia',
-                                 disable_notification=True)
-        
-        '''context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f'Wappu on joskus',
-                                 disable_notification=True)
-        '''
-    @staticmethod
-    def episode_ix(update: Update, context: CallbackContext):
-        wabu = datetime(2019, 12, 20)
-        tanaan = datetime.now()
-        erotus = wabu - tanaan
-        context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f'Ensi-iltaan on mennyt jo kauan sitten.', disable_notification=True)
-
-    @staticmethod
-    def kiitos(update: Update, context: CallbackContext):
-        if update.message.reply_to_message is not None:
-            count = get.kiitosCounter(update.message.reply_to_message.from_user.id)
-            context.bot.send_message(chat_id=update.message.chat_id,
-                                     text=f'Kiitos {update.message.reply_to_message.from_user.first_name}!\n'
-                                     f'{update.message.reply_to_message.from_user.first_name} on saanut kiitoksen jo {count} kertaa!',
-                                     disable_notification=True)
-        else:
-            context.bot.send_message(chat_id=update.message.chat_id, text='Kiitos Jori!', disable_notification=True)
-
-    @staticmethod
-    def voivoi(update: Update, context: CallbackContext):
-        if update.message.reply_to_message is not None:
-            context.bot.send_message(chat_id=update.message.chat_id,
-                                     text=f'voi voi {update.message.reply_to_message.from_user.first_name}😩😩😩',
-                                     disable_notification=True)
-        else:
-            context.bot.send_message(chat_id=update.message.chat_id, text='voi voi Nuutti😩😩😩', disable_notification=True)
-
-    @staticmethod
-    def sekseli(update: Update, context: CallbackContext):
-        if update.message.chat_id == config.MOBILE_ID:
-            context.bot.forward_message(chat_id=update.message.chat_id, from_chat_id=config.MOBILE_ID,
-                                        message_id=316362, disable_notification=True)
-
-    @staticmethod
-    def poyta(update: Update, context: CallbackContext):
-        context.bot.send_animation(chat_id=update.message.chat_id, animation=config.desk, disable_notification=True)
-
-    @staticmethod
-    def insv(update: Update, context: CallbackContext):
-        context.bot.send_sticker(chat_id=update.message.chat_id, sticker=config.insv, disable_notification=True)
-
-    @staticmethod
-    def pinned(update: Update, context: CallbackContext):
-        try:
-            if update.message.pinned_message:
-                if update.message.chat_id == config.MOBILE_ID:
-                    sql = "INSERT INTO pinned VALUES (?,?,?)"
-                    pinned = (update.message.date.isoformat(), update.message.pinned_message.from_user.username,
-                              update.message.pinned_message.text)
-                    conn = sqlite3.connect(config.DB_FILE)
-                    cur = conn.cursor()
-                    cur.execute(sql, pinned)
-                    conn.commit()
-                    conn.close()
-
-        except KeyError:
-            return False
-
-    def quoteadd(self, update: Update, context: CallbackContext):
-        match = self.regex["quoteadd"].match(update.message.text)
-        if match:
-            temp = (match[1], match[2], update.message.chat_id)
-            # tarkasta onko sitaatti jo lisätty joskus aiemmin
-            result = get.dbQuery("SELECT * FROM quotes WHERE quotee=? AND quote=? AND groupID=?", temp)
-            if len(result) != 0:
-                context.bot.send_message(chat_id=update.message.chat_id, text="Toi on jo niin kuultu...",
-                                         disable_notification=True)
-                return
-            quote = (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), match[1],
-                     match[2], update.message.from_user.username, update.message.chat_id)
-            conn = sqlite3.connect(config.DB_FILE)
-            cur = conn.cursor()
-            sql_insert = "INSERT INTO quotes VALUES (?,?,?,?,?)"
-            cur.execute(sql_insert, quote)
-            conn.commit()
-            conn.close()
-            context.bot.send_message(chat_id=update.message.chat_id, text="Sitaatti suhahti")
-        else:
-            context.bot.send_message(chat_id=update.message.chat_id,
-                                     text="Opi käyttämään komentoja pliide bliis!! (/quoteadd"
-                                          " <nimi> <sitaatti>)")
-
-    @staticmethod
-    def quote(update: Update, context: CallbackContext):
-        space = update.message.text.find(' ')
-        if space == -1:
-            quotes = get.dbQuery("SELECT * FROM quotes WHERE groupID=? ORDER BY RANDOM() LIMIT 1", (update.message.chat_id,))
-            if len(quotes) == 0:
-                context.bot.send_message(chat_id=update.message.chat_id, text='Yhtään sitaattia ei ole lisätty.')
-                return
-        else:
-            name = update.message.text[space + 1:]
-            quotes = get.dbQuery("""SELECT * FROM quotes WHERE LOWER(quotee)=? AND groupID=? ORDER BY RANDOM() LIMIT 1""",
-                      (name.lower(),
-                       update.message.chat_id))
-            if len(quotes) == 0:
-                context.bot.send_message(chat_id=update.message.chat_id, text='Ei löydy')
-                return
-        context.bot.send_message(chat_id=update.message.chat_id, text=f'"{quotes[0][2]}" -{quotes[0][1]}')
-
-    @staticmethod
-    def viisaus(update: Update, context: CallbackContext):
-        wisenings = get.dbQuery("SELECT * FROM sananlaskut ORDER BY RANDOM() LIMIT 1")
-        context.bot.send_message(chat_id=update.message.chat_id, text=wisenings[0][0])
-
-    @staticmethod
-    def kuka(update: Update, context: CallbackContext):
-        index = random.randint(0, len(config.MEMBERS)-1)
-        context.bot.send_message(chat_id=update.message.chat_id, text=config.MEMBERS[index])
-
-
-    @staticmethod
-    def weather(update: Update, context: CallbackContext):
-        try:
-            city = update.message.text[5:]
-            weather = WeatherGod()
-            context.bot.send_message(chat_id=update.message.chat_id,
-                             text=weather.generateWeatherReport(city))
-        except AttributeError:
-            context.bot.send_message(chat_id=update.message.chat_id,
-                             text="Komento vaatii parametrin >KAUPUNKI< \n"
-                                  "Esim: /saa Hervanta ")
-            return
-
-    @staticmethod
-    def kick(update: Update, context: CallbackContext):
-        try:
-            context.bot.banChatMember(chat_id=update.message.chat.id, user_id=update.message.from_user.id, until_date=time()+60, revoke_messages=False)
-            link = context.bot.createChatInviteLink(chat_id=update.message.chat_id, expire_date=time()+7200, member_limit=1)
-            if link:
-                invite = lambda context : context.bot.send_message(chat_id=context.job.context[0], text=f"{context.job.context[1]}, linkki vanhenee kahden tunnin päästä BEEP BOOP.")
-                context.job_queue.run_once(invite, 60, context=[update.message.from_user.id, link['invite_link']])
-        except TelegramError:
-            context.bot.send_message(chat_id=update.message.chat_id, text="Vielä joku päivä...")
 
     def voc(self, update: Update, context: CallbackContext):
         if self.voc_calc():
@@ -293,107 +147,21 @@ class TelegramBot:
         # Minus 4 so that we dont count the calling /voc
         return cmds - 4 > msgs
 
-    @staticmethod
-    def cocktail(update: Update, context: CallbackContext):
-        adj = get.dbQuery('''SELECT * FROM adjektiivit ORDER BY RANDOM() LIMIT 1''')[0][0].capitalize() # fetchall returns tuple in list
-        sub = get.dbQuery('''SELECT * FROM substantiivit ORDER BY RANDOM() LIMIT 1''')[0][0]
-
-        if update.message.text[0:12] == '/cocktail -n':
-            context.bot.send_message(chat_id=update.message.chat_id, text=f'{adj} {sub}', disable_notification=True)
-            return
-
-        # generate cocktail name
-        msg = str(adj) + " " + str(sub) + ":\n"
-
-        floor = random.randint(0, 1)
-
-        # generate spirit(s)
-        used = []
-
-        for i in range(random.randint(0, 3) * floor):
-            index = random.randint(0, len(stuff.spirits) - 1)
-            while index in used:
-                index = random.randint(0, len(stuff.spirits) - 1)
-            used.append(index)
-            rnd = stuff.spirits[index]
-            vol = str(random.randrange(2, 8, 2))
-            msg += "-" + vol + " " + "cl " + rnd + "\n"
-
-        # generate mixer(s)
-        used = []
-
-        if floor == 0:
-            # in case of no spirits, lift the floor to 1
-            # so recipe contains at least one mixer
-            floor = 1
-
-        for i in range(random.randint(floor, 3)):
-            index = random.randint(0, len(stuff.spirits) - 1)
-            while index in used:
-                index = random.randint(0, len(stuff.spirits) - 1)
-            used.append(index)
-            rnd = stuff.mixers[index]
-            vol = str(random.randrange(5, 20, 5))
-            msg += "-" + vol + " " + "cl " + rnd + "\n"
-
-        context.bot.send_message(chat_id=update.message.chat_id, text=msg)
 
     def huuto(self, update: Update, context: CallbackContext):
         rng = random.randint(0, 99)
         #self.voc_add(update)
-        self.leffaReply(update, context)
-        if rng >= len(stuff.message) or not self.regex["huuto"].match(update.message.text):
+        leffaReply(update, context)
+        if rng >= len(stuff.message) or not stuff.regexes["huuto"].match(update.message.text):
             return
-
         context.bot.send_message(chat_id=update.message.chat_id, text=stuff.message[rng], disable_notification=True)
-
-    @staticmethod
-    def leffa(update: Update, context: CallbackContext):
-        custom_keyboard = get.generateKeyboard()
-        reply_markup = ReplyKeyboardMarkup(get.build_menu(custom_keyboard, n_cols=2), one_time_keyboard=True, selective=True)
-        context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f'Leffoja @{update.message.from_user.username}',
-                                 reply_to_message_id=update.message.message_id,
-                                 reply_markup=reply_markup)
-
-    @staticmethod
-    def leffaReply(update: Update, context: CallbackContext):
-        if update.message.reply_to_message is None:
-            return
-        if "Leffoja" not in update.message.reply_to_message.text:
-            return
-        premiere = get.getMovie(update.message.text)
-        reply_markup = ReplyKeyboardRemove()
-        context.bot.send_message(chat_id=update.message.chat_id, text=f'Ensi-ilta on {premiere}', reply_markup=reply_markup)
-
-    def getFiilis(self, update: Update, context: CallbackContext):
-        if (update.message.photo and not update.message.caption):
-            return
-        elif update.message.photo and 'fiilis' not in update.message.caption:
-            return
-        imgUrl = get.getImage(self.regex["fiilis"])
-        if imgUrl != "":
-            context.bot.send_message(chat_id=update.message.chat_id, text=imgUrl)
-        else:
-            context.bot.send_message(chat_id=update.message.chat_id, text="Ei fiilistä")
-
-    @staticmethod
-    def viikonloppu(update: Update, context: CallbackContext):
-        context.bot.send_message(chat_id=update.message.chat_id,
-                                 text=f'On viiiiiikonloppu! https://youtu.be/vkVidHRkF88',
-                                 disable_notification=True)
-
-    @staticmethod
-    def arki(update: Update, context: CallbackContext):
-      context.bot.send_message(chat_id=update.message.chat_id,
-                               text=f'https://open.spotify.com/track/6V2XKKilzsIcGAIsDhwEhF?si=eabb43bae9c446aa')
 
     def rudelf(self, update: Update, context: CallbackContext):
         if update.message.reply_to_message is False or update.message.reply_to_message.text is None:
             return
         # Capitalize
         msg = update.message.reply_to_message.text[0].upper() + update.message.reply_to_message.text[1:]
-        for key, val in self.regex["rudismit"].items():
+        for key, val in stuff.regexes["rudismit"].items():
             msg = regex.sub(key, val, msg)
         if random.randint(0,9) < 3:
             msg = msg + " 😅"
@@ -401,7 +169,7 @@ class TelegramBot:
                                  text=msg, disable_notification=True)
 
     def credit(self, update: Update, context: CallbackContext):
-        m = self.regex["credit"].match(update.message.text)
+        m = stuff.regexes["credit"].match(update.message.text)
         treasury = m.group(1)
         params = (treasury, update.message.from_user.id)        
         res = get.dbQuery("SELECT username, amount FROM credits WHERE treasury=? AND id=?", params)
@@ -445,16 +213,6 @@ class TelegramBot:
                                      chat_id=update.message.chat_id)
             return
 
-
-    def hyvaajoulua(self, update: Update, context: CallbackContext):
-        context.bot.send_message(chat_id=update.message.chat_id,
-                                    text=f'Kiitos :) ! Hyvää joulua myös sinulle {update.message.from_user.first_name}!')
-
-    def hyvaajussia(self, update: Update, context: CallbackContext):
-        context.bot.send_message(chat_id=update.message.chat_id,
-                                    text=f'Kiitos :) ! Hyvää jussia myös sinulle {update.message.from_user.first_name}!')
-
-
     def kissa(self, update: Update, context: CallbackContext):
         if len(self.kissaCache) > 0:
             kissa_url = self.kissaCache[0]
@@ -463,29 +221,6 @@ class TelegramBot:
             kissa_url = get.cat()
 
         context.bot.send_animation(chat_id=update.message.chat_id, animation=kissa_url)
-
-    def regexInit(self):
-        self.regex["quoteadd"] = regex.compile(r'\/quoteadd (.[^\s]+) (.+)')
-        self.regex["huuto"] = regex.compile(r"^(?![\W])[^[:lower:]]+$")
-        self.regex["credit"] = regex.compile(r"\/(skalja|skredit) *(([\+-])? ?(\d+[\.,]?\d{0,2}))?")
-        self.regex["fiilis"] = regex.compile(r'"src":"(https:\/\/www.shutterstock.com\/image-[(?:photo)(?:vector)]+\/.+?.jpg)"')
-        self.regex["rudismit"] = dict()
-        for key, val in stuff.rudismit.items():
-            self.regex["rudismit"][regex.compile(key)] = val
-
-    def joke(self, update: Update, context: CallbackContext):
-        joke = get.joke()
-        if joke is None:
-            context.bot.send_message(chat_id=update.message.chat_id, text="Tapahtui virhe")
-        else:
-            msg = f'{joke["setup"]}\n{joke["punchline"]}'
-            context.bot.send_message(chat_id=update.message.chat_id, text=msg, disable_notification=True)
-
-    def xkcd(self, update: Update, context: CallbackContext):
-      max = get.getNewestXkcd()
-      rnd = random.randint(1, max)
-      imgUrl = get.getXkcd(rnd)
-      context.bot.send_photo(chat_id=update.message.chat_id, photo=imgUrl)
     
     def visa(self, update: Update, context: CallbackContext):
         visa = quiz.getQuizQuestion()
