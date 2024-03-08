@@ -3,7 +3,7 @@ from telegram import Update
 from datetime import datetime
 
 def wabu(update: Update, context: CallbackContext):
-    wabu = datetime(2023, 4, 13, 13)
+    wabu = datetime(2024, 4, 11, 13)
     tanaan = datetime.now()
     erotus = wabu - tanaan
     hours = erotus.seconds // 3600
